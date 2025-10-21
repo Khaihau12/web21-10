@@ -1,8 +1,11 @@
 <?php
-session_start();
+require_once 'dbadmin.php';
 
-// Kiểm tra đăng nhập
-if (!isset($_SESSION['user_id'])) {
+$db = new dbadmin();
+
+// Kiểm tra quyền: chỉ admin hoặc editor mới được truy cập
+$user = $db->getCurrentUser();
+if (!$user || !in_array($user['role'], ['admin', 'editor'])) {
     header('Location: login.php');
     exit();
 }
@@ -17,7 +20,7 @@ if (!isset($_SESSION['user_id'])) {
 <body>
     <div class="container">
         <h1>Trang Quản Trị Web Thể Thao</h1>
-        <p class="success">Xin chào, bạn đã đăng nhập thành công!</p>
+        <p class="success">Xin chào, <?php echo htmlspecialchars($user['display_name'] ?? $user['username']); ?>!</p>
         
         <h2>Menu Chức Năng</h2>
     <ul>
