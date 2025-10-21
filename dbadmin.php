@@ -484,6 +484,30 @@ class dbadmin {
     }
     
     // =======================================================================
+    // TÍNH NĂNG: XÓA BÀI VIẾT
+    // =======================================================================
+    
+    /**
+     * Xóa bài viết theo ID
+     * @param int $article_id - ID của bài viết cần xóa
+     * @return bool - True nếu xóa thành công, False nếu thất bại
+     */
+    public function xoaBaiViet($article_id) {
+        $sql = "DELETE FROM articles WHERE article_id = ?";
+        $stmt = $this->conn->prepare($sql);
+        
+        if (!$stmt) {
+            return false;
+        }
+        
+        $stmt->bind_param("i", $article_id);
+        $success = $stmt->execute();
+        $stmt->close();
+        
+        return $success;
+    }
+    
+    // =======================================================================
     // ĐÓNG KẾT NỐI
     // =======================================================================
     
