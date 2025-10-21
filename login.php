@@ -43,12 +43,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php if ($err): ?><p class="error"><?=htmlspecialchars($err)?></p><?php endif; ?>
 <?php if ($success): ?><p class="success"><?=htmlspecialchars($success)?></p><?php endif; ?>
 <form method="post">
-    <label>Username 
-        <input name="username" required>
-    </label>
-    <label>Password 
-        <input name="password" type="password" required>
-    </label>
+    <label>Username</label>
+    <input name="username" required>
+    
+    <label>Password</label>
+    <input name="password" type="password" required>
+    
     <button type="submit">Đăng Nhập</button>
 </form>
 </div>
