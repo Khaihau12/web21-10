@@ -1,9 +1,8 @@
 <?php
-session_start();
+require_once 'dbadmin.php';
 
-// Xóa tất cả session
-session_unset();
-session_destroy();
+$db = new dbadmin();
+$db->logout();
 
 // Chuyển về trang đăng nhập
 header('Location: login.php');
