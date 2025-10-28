@@ -1,14 +1,5 @@
 <?php
-require_once 'dbadmin.php';
-
-$db = new dbadmin();
-
-// Kiểm tra quyền: chỉ admin hoặc editor mới được truy cập
-$user = $db->getCurrentUser();
-if (!$user || !in_array($user['role'], ['admin', 'editor'])) {
-    header('Location: login.php');
-    exit();
-}
+// Không cần kiểm tra đăng nhập nữa
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -20,7 +11,7 @@ if (!$user || !in_array($user['role'], ['admin', 'editor'])) {
 <body>
     <div class="container">
         <h1>Trang Quản Trị Web Thể Thao</h1>
-        <p class="success">Xin chào, <?php echo htmlspecialchars($user['display_name'] ?? $user['username']); ?>!</p>
+        <p class="success">Chào mừng bạn đến với hệ thống quản trị!</p>
         
         <h2>Menu Chức Năng</h2>
     <ul>
