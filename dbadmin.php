@@ -172,6 +172,33 @@ class dbadmin {
     }
     
     // =======================================================================
+    // TÍNH NĂNG: THÊM CATEGORY
+    // =======================================================================
+    
+    public function themChuyenMuc($name, $slug, $parent_id) {
+        // Nếu không có slug thì tạo từ name
+        if (empty($slug)) {
+            $slug = $this->createSlug($name);
+        } else {
+            $slug = $this->createSlug($slug);
+        }
+        
+        // Nếu parent_id rỗng thì set null
+        if (empty($parent_id)) {
+            $parent_id = null;
+        }
+        
+        // Thêm vào database
+        $sql = "INSERT INTO categories (name, slug, parent_id) VALUES (?, ?, ?)";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("ssi", $name, $slug, $parent_id);
+        $success = $stmt->execute();
+        $stmt->close();
+        
+        return $success;
+    }
+    
+    // =======================================================================
     // TÍNH NĂNG: XÓA CATEGORY
     // =======================================================================
     
