@@ -1,30 +1,19 @@
 <?php
 require 'dbadmin.php';
 
-// ensure session so we can show flash messages
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
-}
+$dbAdmin = new dbadmin();
 
 $err = '';
 $success = '';
-// show and clear any flash success message
-if (!empty($_SESSION['flash_success'])) {
-    $success = $_SESSION['flash_success'];
-    unset($_SESSION['flash_success']);
-}
-// instantiate dbadmin class
-$dbAdmin = new dbadmin();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
     $user = $dbAdmin->login($username, $password);
     if ($user) {
-        // set flash success so other pages can display it
-        $_SESSION['flash_success'] = 'Đăng nhập thành công';
-        header('Location: index.php');
-        exit;
+        $success = 'Đăng nhập thành công! Chuyển trang...';
+        header('refresh:1;url=index.php');
     } else {
         $err = 'Sai username hoặc mật khẩu';
     }
