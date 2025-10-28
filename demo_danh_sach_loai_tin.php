@@ -9,13 +9,6 @@ require_once 'dbadmin.php';
 // Khởi tạo database
 $db = new dbadmin();
 
-// Kiểm tra quyền: chỉ admin hoặc editor mới được truy cập
-$user = $db->getCurrentUser();
-if (!$user || !in_array($user['role'], ['admin', 'editor'])) {
-    header('Location: login.php');
-    exit();
-}
-
 ?>
 <!DOCTYPE html>
 <html lang="vi">
