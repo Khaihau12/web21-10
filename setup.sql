@@ -23,7 +23,7 @@ CREATE TABLE `categories` (
 CREATE TABLE `users` (
   `user_id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `username` varchar(100) NOT NULL,
-  `password_hash` varchar(255) NOT NULL,
+  `password` varchar(100) NOT NULL,
   `role` enum('admin','editor','user') NOT NULL DEFAULT 'user',
   `display_name` varchar(150) DEFAULT NULL,
   `email` varchar(200) DEFAULT NULL,
@@ -88,6 +88,12 @@ CREATE TABLE `comments` (
 --
 -- Dữ liệu mẫu
 --
+
+-- Thêm user mẫu
+INSERT INTO `users` (`username`, `password`, `role`, `display_name`, `email`) VALUES
+('admin', '123456', 'admin', 'Quản Trị Viên', 'admin@gmail.com'),
+('editor', '123456', 'editor', 'Biên Tập Viên', 'editor@gmail.com'),
+('user', '123456', 'user', 'Người Dùng', 'user@gmail.com');
 
 INSERT INTO `categories` (`category_id`, `name`, `slug`, `parent_id`) VALUES
 (1, 'Thể thao', 'the-thao', NULL),
