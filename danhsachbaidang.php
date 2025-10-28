@@ -3,13 +3,6 @@ require_once 'dbadmin.php';
 $db = new dbadmin();
 $conn = $db->getConnection();
 
-// Kiểm tra quyền: chỉ admin hoặc editor mới được truy cập
-$user = $db->getCurrentUser();
-if (!$user || !in_array($user['role'], ['admin', 'editor'])) {
-    header('Location: login.php');
-    exit();
-}
-
 // Xử lý xóa bài viết
 if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
     $article_id = (int)$_GET['id'];
