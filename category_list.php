@@ -15,6 +15,9 @@ $categories = $db->getList("categories",);
 <div class="container">
     <h1>Danh Sách Chuyên Mục</h1>
     
+    <a href="them_chuyen_muc.php" class="btn">+ Thêm chuyên mục mới</a>
+    <br><br>
+    
     <table>
         <thead>
             <tr>
