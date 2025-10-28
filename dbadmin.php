@@ -27,104 +27,38 @@ class dbadmin {
     }
     
     // =======================================================================
-    // TÍNH NĂNG: ĐĂNG NHẬP ADMIN
+    // TÍNH NĂNG: ĐĂNG NHẬP ADMIN (ĐƠN GIẢN - KHÔNG MÃ HÓA, KHÔNG SESSION)
     // =======================================================================
     
-    public function login($usernameOrEmail, $password) {
-        // chuẩn hóa đầu vào
-        $usernameOrEmail = trim($usernameOrEmail);
-        if ($usernameOrEmail === '' || $password === '') {
-            return false;
-        }
-
-        // Tìm user theo username hoặc email
-        $sql = "SELECT user_id, username, password_hash, display_name, email, role FROM users WHERE username = ? OR email = ? LIMIT 1";
-        $stmt = $this->conn->prepare($sql);
-        if (!$stmt) {
-            error_log('dbadmin->login prepare failed: ' . $this->conn->error);
-            return false;
-        }
-        $stmt->bind_param('ss', $usernameOrEmail, $usernameOrEmail);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        $user = $res->fetch_assoc();
-        $stmt->close();
-
-        if (!$user) {
-            // Không tìm thấy user
-            return false;
-        }
-
-        // Kiểm tra password
-        if (!isset($user['password_hash'])) {
-            return false;
-        }
-
-
-        if (password_verify($password, $user['password_hash'])) {
-            // Xóa trường password_hash trước khi trả về
-            unset($user['password_hash']);
-            // Khởi tạo session nếu cần, rotate id và lưu user_id
-            if (session_status() !== PHP_SESSION_ACTIVE) {
-                @session_start();
+    public function login($username, $password) {
+        // Lấy tất cả tài khoản từ database
+        $sql = "SELECT * FROM users";
+        $result = $this->conn->query($sql);
+        
+        // Duyệt qua từng tài khoản
+        while ($row = $result->fetch_assoc()) {
+            // Nếu tìm thấy username và password khớp
+            if ($row['username'] == $username && $row['password'] == $password) {
+                return true; // Đăng nhập thành công
             }
-            // Rotate session id to prevent fixation
-            if (function_exists('session_regenerate_id')) {
-                session_regenerate_id(true);
-            }
-            $_SESSION['user_id'] = $user['user_id'];
-            return $user;
         }
-
-        return false;
+        
+        return false; // Không tìm thấy tài khoản khớp
     }
     
-    // Đăng xuất người dùng
-    public function logout($destroy = true) {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            @session_start();
-        }
-        // remove user id
-        if (isset($_SESSION['user_id'])) {
-            unset($_SESSION['user_id']);
-        }
-        if ($destroy) {
-            // Clear session data and destroy session cookie
-            $_SESSION = [];
-            if (ini_get('session.use_cookies')) {
-                $params = session_get_cookie_params();
-                setcookie(session_name(), '', time() - 42000,
-                    $params['path'], $params['domain'], $params['secure'], $params['httponly']
-                );
-            }
-            @session_destroy();
-        }
+    // Đăng xuất người dùng (đơn giản)
+    public function logout() {
         return true;
     }
 
-    // Kiểm tra đã đăng nhập hay chưa
+    // Kiểm tra đã đăng nhập hay chưa (luôn trả về false vì không dùng session)
     public function isLoggedIn() {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            @session_start();
-        }
-        return !empty($_SESSION['user_id']);
+        return false;
     }
     
-    // Lấy thông tin user hiện tại (nếu cần)
+    // Lấy thông tin user hiện tại (không dùng nữa)
     public function getCurrentUser() {
-        if (!$this->isLoggedIn()) {
-            return null;
-        }
-        $uid = $_SESSION['user_id'];
-        $sql = "SELECT user_id, username, display_name, email, role FROM users WHERE user_id = ? LIMIT 1";
-        $stmt = $this->conn->prepare($sql);
-        if (!$stmt) return null;
-        $stmt->bind_param('i', $uid);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        $user = $res->fetch_assoc();
-        $stmt->close();
-        return $user ?: null;
+        return null;
     }
     
     // =======================================================================
