@@ -37,13 +37,15 @@ class dbadmin {
         
         // Duyệt qua từng tài khoản
         while ($row = $result->fetch_assoc()) {
-            // Nếu tìm thấy username và password khớp
+            // Nếu tìm thấy username và password khớp VÀ role phải là admin hoặc editor
             if ($row['username'] == $username && $row['password'] == $password) {
-                return true; // Đăng nhập thành công
+                if ($row['role'] == 'admin' || $row['role'] == 'editor') {
+                    return true; // Đăng nhập thành công
+                }
             }
         }
         
-        return false; // Không tìm thấy tài khoản khớp
+        return false; // Không tìm thấy tài khoản khớp hoặc không phải admin/editor
     }
     
     // Đăng xuất người dùng (đơn giản)
