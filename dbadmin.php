@@ -27,7 +27,7 @@ class dbadmin {
     }
     
     // =======================================================================
-    // TÍNH NĂNG: ĐĂNG NHẬP ADMIN (ĐƠN GIẢN - KHÔNG MÃ HÓA, KHÔNG SESSION)
+    // TÍNH NĂNG: ĐĂNG NHẬP ADMIN 
     // =======================================================================
     
     public function login($username, $password) {
