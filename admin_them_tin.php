@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $upload_path = __DIR__ . '/uploads/' . $filename;
             
             if (move_uploaded_file($_FILES['image']['tmp_name'], $upload_path)) {
-                $image_url = '/project/uploads/' . $filename;
+                $image_url = '/web21-10/uploads/' . $filename;
             } else {
                 $message = 'Lỗi khi upload ảnh!';
                 $message_type = 'error';
