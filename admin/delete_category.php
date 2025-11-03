@@ -1,10 +1,6 @@
 <?php
 require_once "dbadmin.php";
-// Kiểm tra đăng nhập
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit();
-}
+
 if ($_SERVER['REQUEST_METHOD'] === "POST") {
     $category_id = isset($_POST['category_id']) ? intval($_POST['category_id']) : 0;
     if ($category_id > 0) {
