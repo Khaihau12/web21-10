@@ -1,138 +1,207 @@
+<?php
+require_once 'dbuser.php';
+$db = new dbuser();
+
+// Lấy dữ liệu từ database
+$tinNoiBat = $db->layBaiVietNoiBat(1); // Lấy 1 bài nổi bật nhất
+$tinMoiNhat = $db->layTatCaBaiViet(10); // Lấy 10 tin mới nhất
+$tinTheThao = $db->layBaiVietTheoCategory('the-thao', 4); // Lấy 4 tin thể thao
+$tinSidebar = $db->layTatCaBaiViet(5); // Lấy 5 tin cho sidebar
+$danhMuc = $db->layTatCaChuyenMuc(); // Lấy tất cả danh mục
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Thể Thao - Trang Chủ</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Tin tức bóng đá, thể thao, giải trí | Đọc tin tức 24h mới nhất</title>
+    <link rel="stylesheet" href="style.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
-    <!-- HEADER - Phần đầu trang -->
-    <header>
+    <!-- TOP BAR - Thanh trên cùng -->
+    <header class="top-bar">
         <div class="container">
-            <h1>⚽ Web Thể Thao</h1>
-            <p>Cập nhật tin tức thể thao mới nhất</p>
+            <div class="logo">
+                <a href="index.php" aria-label="Trang chủ">
+                    24H 📰 <span class="logo-subtext">THỂ THAO - BÓNG ĐÁ</span>
+                </a>
+            </div>
+            <nav class="top-menu">
+                <ul>
+                    <li>
+                        <form action="index.php" method="get">
+                            <input type="text" name="q" placeholder="Nhập tin cần tìm">
+                            <button type="submit" style="border:none; background:transparent; padding:0; margin-left:6px;">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </form>
+                    </li>
+                    <li><a href="loginuser.php">Đăng nhập</a></li>
+                    <li><a href="register.php">Đăng ký</a></li>
+                </ul>
+            </nav>
         </div>
     </header>
 
-    <!-- NAVIGATION - Menu điều hướng -->
-    <nav>
+    <!-- MAIN NAVIGATION - Menu chính -->
+    <nav class="main-nav">
         <div class="container">
             <ul>
-                <li><a href="index.php">Trang chủ</a></li>
-                <li><a href="loginuser.php">Đăng nhập</a></li>
-                <li><a href="register.php">Đăng ký</a></li>
+                <li><a href="index.php" class="active"><i class="fa fa-home"></i> TRANG CHỦ</a></li>
+                <?php foreach($danhMuc as $dm): ?>
+                <li><a href="category.php?id=<?php echo $dm['id']; ?>"><?php echo strtoupper($dm['name']); ?></a></li>
+                <?php endforeach; ?>
             </ul>
         </div>
     </nav>
 
-    <!-- MAIN CONTENT - Nội dung chính -->
-    <main>
-        <div class="container">
-            <!-- Bài viết nổi bật -->
-            <div class="featured">
-                <h2>🔥 Tin nổi bật</h2>
-                <h3>Mbappe chính thức gia nhập Real Madrid</h3>
-                <p>Sau nhiều năm chờ đợi, cuối cùng siêu sao người Pháp đã trở thành người của Real Madrid với hợp đồng 5 năm.</p>
-                <a href="article.php">Đọc tiếp →</a>
+
+    <!-- MAIN CONTENT -->
+    <div class="container main-content-24h" style="padding-top: 20px;">
+        <div class="row d-flex">
+            <div class="col-8 main-column main-column-pad">
+                
+                <!-- SECTION: Tin nổi bật -->
+                <section class="hightl-24h-block d-flex">
+                    <!-- Bài nổi bật lớn -->
+                    <?php if($tinNoiBat): ?>
+                    <div class="hightl-24h-big hightl-24h-big--col">
+                        <a href="article.php?id=<?php echo $tinNoiBat['id']; ?>">
+                            <img src="admin/<?php echo $tinNoiBat['image']; ?>" alt="<?php echo htmlspecialchars($tinNoiBat['title']); ?>" class="img-fluid hightl-img-big">
+                        </a>
+                        <h2 class="hightl-title-big">
+                            <a href="article.php?id=<?php echo $tinNoiBat['id']; ?>" class="fw-bold color-main hover-color-24h">
+                                <?php echo htmlspecialchars($tinNoiBat['title']); ?>
+                            </a>
+                        </h2>
+                        <p class="hightl-summary"><?php echo htmlspecialchars(substr($tinNoiBat['summary'], 0, 150)); ?>...</p>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <!-- Danh sách tin nổi bật nhỏ -->
+                    <div class="hightl-24h-list" style="flex: 1; padding-left: 20px;">
+                        <?php 
+                        $tinNho = array_slice($tinMoiNhat, 1, 3); // Lấy 3 tin tiếp theo
+                        foreach($tinNho as $tin): 
+                        ?>
+                        <article class="hightl-24h-items" style="margin-bottom: 15px;">
+                            <span class="hightl-24h-items-cate d-block mar-b-5">
+                                <a href="category.php?id=<?php echo $tin['category_id']; ?>" class="color-24h">
+                                    <?php echo htmlspecialchars($tin['category_name']); ?>
+                                </a>
+                            </span>
+                            <h3>
+                                <a href="article.php?id=<?php echo $tin['id']; ?>" class="d-block fw-medium color-main hover-color-24h">
+                                    <?php echo htmlspecialchars($tin['title']); ?>
+                                </a>
+                            </h3>
+                        </article>
+                        <?php endforeach; ?>
+                    </div>
+                </section>
+
+                <!-- SECTION: Category showcase - Thể thao -->
+                <section class="category-showcase-block">
+                    <header class="category-showcase-header">
+                        <h2 class="category-title"><a href="category.php">THỂ THAO</a></h2>
+                        <nav class="sub-category-nav">
+                            <a href="category.php?slug=bong-da">Bóng đá</a>
+                            <a href="category.php?slug=tennis">Tennis</a>
+                            <a href="category.php?slug=bong-ro">Bóng rổ</a>
+                        </nav>
+                    </header>
+                    <div class="category-showcase-content">
+                        <!-- Bài chính -->
+                        <?php if(isset($tinTheThao[0])): ?>
+                        <article class="showcase-top-story">
+                            <a href="article.php?id=<?php echo $tinTheThao[0]['id']; ?>" class="story-image">
+                                <img src="admin/<?php echo $tinTheThao[0]['image']; ?>" alt="<?php echo htmlspecialchars($tinTheThao[0]['title']); ?>">
+                            </a>
+                            <div class="story-content">
+                                <h3><a href="article.php?id=<?php echo $tinTheThao[0]['id']; ?>"><?php echo htmlspecialchars($tinTheThao[0]['title']); ?></a></h3>
+                                <p><?php echo htmlspecialchars(substr($tinTheThao[0]['summary'], 0, 150)); ?>...</p>
+                            </div>
+                        </article>
+                        <?php endif; ?>
+                        
+                        <!-- Các bài nhỏ -->
+                        <div class="showcase-bottom-stories">
+                            <?php 
+                            $tinNhoTheThao = array_slice($tinTheThao, 1, 3);
+                            foreach($tinNhoTheThao as $tin): 
+                            ?>
+                            <article class="story-small">
+                                <a href="article.php?id=<?php echo $tin['id']; ?>" class="story-image">
+                                    <img src="admin/<?php echo $tin['image']; ?>" alt="<?php echo htmlspecialchars($tin['title']); ?>">
+                                </a>
+                                <h4><a href="article.php?id=<?php echo $tin['id']; ?>"><?php echo htmlspecialchars($tin['title']); ?></a></h4>
+                            </article>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </section>
+
+                <hr style="margin: 30px 0; border: 0; border-top: 5px solid #eee;">
+
+                <!-- SECTION: Danh sách tin mới nhất -->
+                <section class="cate-news-24h-r mar-t-40">
+                    <div class="box-t d-flex align-items-center mar-b-15">
+                        <h2 class="fw-bold text-uppercase color-green-custom">📰 TIN MỚI NHẤT</h2>
+                    </div>
+                    
+                    <!-- Bài viết -->
+                    <?php foreach($tinMoiNhat as $tin): ?>
+                    <div class="article-card">
+                        <img src="admin/<?php echo $tin['image']; ?>" alt="<?php echo htmlspecialchars($tin['title']); ?>">
+                        <div class="article-content">
+                            <h3><?php echo htmlspecialchars($tin['title']); ?></h3>
+                            <div class="meta">
+                                <span>📅 <?php echo date('d/m/Y', strtotime($tin['created_at'])); ?></span> |
+                                <span>📁 <?php echo htmlspecialchars($tin['category_name']); ?></span> |
+                                <span>�️ <?php echo number_format($tin['views']); ?> lượt xem</span>
+                            </div>
+                            <p><?php echo htmlspecialchars(substr($tin['summary'], 0, 150)); ?>...</p>
+                            <a href="article.php?id=<?php echo $tin['id']; ?>" class="read-more">Đọc tiếp →</a>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </section>
+
             </div>
 
-            <!-- Layout 2 cột: Sidebar + Danh sách bài viết -->
-            <div class="two-column">
-                <!-- SIDEBAR - Thanh bên trái -->
-                <aside class="sidebar">
-                    <h3>Chuyên mục</h3>
-                    <ul>
-                        <li><a href="category.php">📰 Tất cả tin tức</a></li>
-                        <li><a href="category.php">⚽ Bóng đá</a></li>
-                        <li><a href="category.php">🎾 Tennis</a></li>
-                        <li><a href="category.php">🏀 Bóng rổ</a></li>
-                        <li><a href="category.php">🏊 Bơi lội</a></li>
-                        <li><a href="category.php">💰 Kinh tế</a></li>
-                        <li><a href="category.php">🌍 Thế giới</a></li>
-                    </ul>
-
-                    <h3 style="margin-top: 30px;">Tin mới nhất</h3>
-                    <ul>
-                        <li><a href="#">Mbappe gia nhập Real Madrid</a></li>
-                        <li><a href="#">Liverpool thắng Man City 3-1</a></li>
-                        <li><a href="#">Federer giải nghệ ở tuổi 41</a></li>
-                        <li><a href="#">Lịch thi đấu V-League 2025</a></li>
-                        <li><a href="#">Bitcoin tăng mạnh</a></li>
-                    </ul>
-                </aside>
-
-                <!-- CONTENT - Danh sách bài viết -->
-                <div class="content">
-                    <!-- Bài viết 1 -->
-                    <div class="article-card">
-                        <img src="https://via.placeholder.com/400x200/3498db/ffffff?text=Bong+Da" alt="Bóng đá">
-                        <div class="article-content">
-                            <h3>Kết quả V-League: HAGL chia điểm với Hà Nội FC</h3>
-                            <div class="meta">
-                                <span>📅 11/10/2025</span> | 
-                                <span>📁 Bóng đá</span> | 
-                                <span>👁️ 1,234 lượt xem</span>
-                            </div>
-                            <p>Trận cầu tâm điểm vòng 15 V-League đã diễn ra vô cùng hấp dẫn với màn rượt đuổi tỷ số ngoạn mục giữa hai đội bóng hàng đầu...</p>
-                            <a href="#" class="read-more">Đọc tiếp →</a>
+            <!-- SIDEBAR - Cột bên phải -->
+            <aside class="sidebar-column col-4">
+                <div class="latest-news-block">
+                    <header class="latest-news-tit">
+                        <h2 class="fw-bold text-uppercase color-green-custom">📌 TIN MỚI NHẤT</h2>
+                    </header>
+                    <div class="latest-news-list">
+                        <?php foreach($tinSidebar as $tin): ?>
+                        <div class="sidebar-article">
+                            <h4 style="font-size: 11px; color: #888; text-transform: uppercase;">
+                                <?php echo htmlspecialchars($tin['category_name']); ?>
+                            </h4>
+                            <p>
+                                <a href="article.php?id=<?php echo $tin['id']; ?>" class="color-main hover-color-24h">
+                                    <?php echo htmlspecialchars($tin['title']); ?>
+                                </a>
+                            </p>
                         </div>
-                    </div>
-
-                    <!-- Bài viết 2 -->
-                    <div class="article-card">
-                        <img src="https://via.placeholder.com/400x200/e74c3c/ffffff?text=Tennis" alt="Tennis">
-                        <div class="article-content">
-                            <h3>Alcaraz vô địch Wimbledon sau trận chung kết nghẹt thở <span class="badge">HOT</span></h3>
-                            <div class="meta">
-                                <span>📅 11/10/2025</span> | 
-                                <span>📁 Tennis</span> | 
-                                <span>👁️ 856 lượt xem</span>
-                            </div>
-                            <p>Tay vợt trẻ người Tây Ban Nha đã xuất sắc đánh bại đối thủ kỳ cựu để lần đầu tiên lên ngôi tại Wimbledon với tỷ số 3-2...</p>
-                            <a href="#" class="read-more">Đọc tiếp →</a>
-                        </div>
-                    </div>
-
-                    <!-- Bài viết 3 -->
-                    <div class="article-card">
-                        <img src="https://via.placeholder.com/400x200/2ecc71/ffffff?text=Kinh+Te" alt="Kinh tế">
-                        <div class="article-content">
-                            <h3>Bitcoin biến động mạnh, nhà đầu tư nên làm gì?</h3>
-                            <div class="meta">
-                                <span>📅 10/10/2025</span> | 
-                                <span>📁 Kinh tế</span> | 
-                                <span>👁️ 2,145 lượt xem</span>
-                            </div>
-                            <p>Thị trường tiền điện tử đang trải qua một giai đoạn đầy biến động. Các chuyên gia khuyên nhà đầu tư nên hết sức cẩn trọng...</p>
-                            <a href="#" class="read-more">Đọc tiếp →</a>
-                        </div>
-                    </div>
-
-                    <!-- Bài viết 4 -->
-                    <div class="article-card">
-                        <img src="https://via.placeholder.com/400x200/9b59b6/ffffff?text=The+Gioi" alt="Thế giới">
-                        <div class="article-content">
-                            <h3>NASA công bố kế hoạch đưa người trở lại Mặt Trăng</h3>
-                            <div class="meta">
-                                <span>📅 09/10/2025</span> | 
-                                <span>📁 Thế giới</span> | 
-                                <span>👁️ 1,567 lượt xem</span>
-                            </div>
-                            <p>Chương trình Artemis hứa hẹn sẽ mở ra một kỷ nguyên mới cho việc khám phá không gian của nhân loại vào năm 2028...</p>
-                            <a href="#" class="read-more">Đọc tiếp →</a>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
                 </div>
-            </div>
+            </aside>
         </div>
-    </main>
+    </div>
 
-    <!-- FOOTER - Chân trang -->
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 Web Thể Thao. Tất cả quyền được bảo lưu.</p>
-            <p>Liên hệ: info@webthethao.com | Hotline: 1900-xxxx</p>
+    <!-- FOOTER -->
+    <footer style="margin-top:40px;padding:20px 0;border-top:1px solid #eee;color:#666;font-size:13px">
+        <div class="container" style="display:flex;justify-content:space-between;align-items:center">
+            <div>© 2025 Web Thể Thao - Tất cả vì người đọc.</div>
+            <div style="opacity:.6">
+                <a href="admin/login.php" title="Đăng nhập quản trị" style="color:#666;text-decoration:none">Quản trị</a>
+            </div>
         </div>
     </footer>
 </body>
