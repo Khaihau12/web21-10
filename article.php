@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mbappe chính thức gia nhập Real Madrid - Web Thể Thao</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         /* CSS riêng cho trang chi tiết bài viết */
         .article-detail {
@@ -71,146 +72,173 @@
             margin: 20px 0;
             border-radius: 8px;
         }
+        
+        .breadcrumb {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .breadcrumb a {
+            color: #3498db;
+        }
+        
+        .breadcrumb a:hover {
+            color: #d90000;
+        }
     </style>
 </head>
 <body>
-    <!-- HEADER -->
-    <header>
+    <!-- TOP BAR -->
+    <header class="top-bar">
         <div class="container">
-            <h1>⚽ Web Thể Thao</h1>
-            <p>Cập nhật tin tức thể thao mới nhất</p>
+            <div class="logo">
+                <a href="index.php" aria-label="Trang chủ">
+                    24H 📰 <span class="logo-subtext">THỂ THAO - BÓNG ĐÁ</span>
+                </a>
+            </div>
+            <nav class="top-menu">
+                <ul>
+                    <li>
+                        <form action="index.php" method="get">
+                            <input type="text" name="q" placeholder="Nhập tin cần tìm">
+                            <button type="submit" style="border:none; background:transparent; padding:0; margin-left:6px;">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </form>
+                    </li>
+                    <li><a href="loginuser.php">Đăng nhập</a></li>
+                    <li><a href="register.php">Đăng ký</a></li>
+                </ul>
+            </nav>
         </div>
     </header>
 
-    <!-- NAVIGATION -->
-    <nav>
+    <!-- MAIN NAVIGATION -->
+    <nav class="main-nav">
         <div class="container">
             <ul>
-                <li><a href="index.php">Trang chủ</a></li>
-                <li><a href="loginuser.php">Đăng nhập</a></li>
-                <li><a href="register.php">Đăng ký</a></li>
+                <li><a href="index.php"><i class="fa fa-home"></i> TRANG CHỦ</a></li>
+                <li><a href="category.php?slug=bong-da">BÓNG ĐÁ</a></li>
+                <li><a href="category.php?slug=tennis">TENNIS</a></li>
+                <li><a href="category.php?slug=bong-ro">BÓNG RỔ</a></li>
+                <li><a href="category.php?slug=kinh-te">KINH TẾ</a></li>
+                <li><a href="category.php?slug=the-gioi">THẾ GIỚI</a></li>
             </ul>
         </div>
     </nav>
 
     <!-- MAIN CONTENT -->
-    <main>
-        <div class="container">
-            <div class="two-column">
-                <!-- SIDEBAR -->
-                <aside class="sidebar">
-                    <h3>Chuyên mục</h3>
-                    <ul>
-                        <li><a href="category.php">📰 Tất cả tin tức</a></li>
-                        <li><a href="#" style="color: #3498db; font-weight: bold;">⚽ Bóng đá</a></li>
-                        <li><a href="#">🎾 Tennis</a></li>
-                        <li><a href="#">🏀 Bóng rổ</a></li>
-                        <li><a href="#">💰 Kinh tế</a></li>
-                        <li><a href="#">🌍 Thế giới</a></li>
-                    </ul>
-
-                    <h3 style="margin-top: 30px;">Tin mới nhất</h3>
-                    <ul>
-                        <li><a href="#" style="color: #3498db;">Mbappe gia nhập Real Madrid</a></li>
-                        <li><a href="#">Liverpool thắng Man City 3-1</a></li>
-                        <li><a href="#">Federer giải nghệ ở tuổi 41</a></li>
-                        <li><a href="#">Lịch thi đấu V-League 2025</a></li>
-                        <li><a href="#">Bitcoin tăng mạnh</a></li>
-                    </ul>
+    <div class="container content-area d-flex" style="padding-top: 20px;">
+        <main class="main-column col-8 main-column-pad">
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <a href="index.php">Trang chủ</a> &raquo; 
+                <a href="category.php?slug=bong-da">Bóng đá</a>
+            </div>
+            
+            <!-- Bài viết chi tiết -->
+            <article class="full-article">
+                <div class="article-header">
+                    <h1 class="article-title">Mbappe chính thức gia nhập Real Madrid với hợp đồng 5 năm</h1>
+                    <div class="article-meta-info d-flex justify-content-between align-items-center">
+                        <span class="meta-left">
+                            Chuyên mục: <span class="date-time">Bóng đá</span>
+                            &nbsp;•&nbsp;
+                            <span class="date-time">11/10/2025 10:30 AM</span>
+                        </span>
+                    </div>
+                </div>
+            
+                <div class="article-content">
+                    <p style="font-weight: bold; color: #000; font-size: 19px; line-height: 1.5; margin-bottom: 20px;">
+                        Sau nhiều năm chờ đợi, cuối cùng siêu sao người Pháp Kylian Mbappe đã trở thành người của Real Madrid.
+                    </p>
                     
-                    <a href="category.php" class="back-link" style="display: inline-block; margin-top: 20px;">← Quay lại danh sách</a>
-                </aside>
-
-                <!-- CHI TIẾT BÀI VIẾT -->
-                <div class="content">
-                    <div class="article-detail">
-                        <!-- Tiêu đề -->
-                        <h1>Mbappe chính thức gia nhập Real Madrid với hợp đồng 5 năm</h1>
+                    <img src="https://via.placeholder.com/800x450/3498db/ffffff?text=Mbappe+Real+Madrid" alt="Mbappe" class="featured-image">
+                    
+                    <div class="article-body">
+                        <p>Đây là một bản hợp đồng thế kỷ, hứa hẹn sẽ thay đổi cán cân quyền lực của bóng đá châu Âu trong nhiều năm tới.</p>
                         
-                        <!-- Thông tin meta -->
-                        <div class="meta">
-                            <span>📅 11/10/2025 14:30</span> | 
-                            <span>📁 Bóng đá</span> | 
-                            <span>👁️ 15,234 lượt xem</span>
-                            <span class="badge">HOT</span>
-                        </div>
+                        <h3>Hợp đồng "khủng"</h3>
+                        <p>Theo nguồn tin từ các phương tiện truyền thông Tây Ban Nha, Mbappe sẽ ký hợp đồng 5 năm với mức lương lên tới 30 triệu euro mỗi năm, chưa tính các khoản thưởng và hoa hồng.</p>
+                        
+                        <img src="https://via.placeholder.com/600x400/e74c3c/ffffff?text=Contract+Signing" alt="Signing" style="max-width: 100%; height: auto; margin: 20px 0; border-radius: 8px;">
+                        
+                        <h3>Kỳ vọng lớn</h3>
+                        <p>Người hâm mộ Real Madrid đang rất phấn khích trước sự xuất hiện của Mbappe. Họ tin rằng anh sẽ là mảnh ghép hoàn hảo cho đội hình "Los Blancos".</p>
+                        
+                        <p>Ở tuổi 25, Mbappe đang ở đỉnh cao sự nghiệp với tốc độ bứt phá kinh hoàng, kỹ thuật tuyệt vời và khả năng ghi bàn ấn tượng.</p>
+                        
+                        <h3>Tương lai rực rỡ</h3>
+                        <p>Với sự có mặt của Mbappe, Real Madrid hứa hẹn sẽ tiếp tục thống trị bóng đá châu Âu trong nhiều năm tới. Đây là bước đi quan trọng trong chiến lược xây dựng đội hình mới của CLB.</p>
+                    </div>
+                </div>
+            </article>
+            
+            <!-- Actions -->
+            <section class="article-actions" style="margin-top:16px;border-top:1px solid #eee;padding-top:12px;">
+                <form method="post" style="display:inline">
+                    <button type="submit" name="like_toggle" value="1" style="padding:6px 10px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer">
+                        🤍 Thích (0)
+                    </button>
+                </form>
+                <form method="post" style="display:inline;margin-left:8px;">
+                    <button type="submit" name="save_toggle" value="1" style="padding:6px 10px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer">
+                        📌 Lưu đọc sau
+                    </button>
+                </form>
+            </section>
 
-                        <!-- Ảnh đại diện -->
-                        <img src="https://via.placeholder.com/800x400/3498db/ffffff?text=Mbappe+Real+Madrid" 
-                             alt="Mbappe gia nhập Real Madrid" 
-                             class="featured-image">
+            <!-- Comments -->
+            <section class="comments" style="margin-top:20px;">
+                <h3>Bình luận</h3>
+                <p><a href="loginuser.php">Đăng nhập</a> để bình luận.</p>
+                <div class="comment-list">
+                    <p>Chưa có bình luận.</p>
+                </div>
+            </section>
+        </main>
 
-                        <!-- Tóm tắt -->
-                        <div class="summary">
-                            Sau nhiều năm chờ đợi, cuối cùng siêu sao người Pháp Kylian Mbappe đã trở thành người của Real Madrid. Đây là một bản hợp đồng thế kỷ, hứa hẹn sẽ thay đổi cán cân quyền lực của bóng đá châu Âu trong nhiều năm tới.
-                        </div>
-
-                        <!-- Nội dung chi tiết -->
-                        <div class="content">
-                            <p>
-                                <strong>MADRID</strong> - Trong một thông báo chính thức vào sáng nay, Real Madrid đã xác nhận việc ký hợp đồng với Kylian Mbappe, ngôi sao 26 tuổi người Pháp, với thời hạn 5 năm.
-                            </p>
-
-                            <p>
-                                Đây được coi là một trong những vụ chuyển nhượng lớn nhất trong lịch sử bóng đá thế giới. Mbappe sẽ nhận mức lương khổng lồ và được trao số áo huyền thoại số 7, con số từng gắn liền với Cristiano Ronaldo.
-                            </p>
-
-                            <h3>Sự nghiệp rực rỡ tại PSG</h3>
-
-                            <p>
-                                Mbappe đã có một sự nghiệp đầy ấn tượng tại PSG với 5 chức vô địch Ligue 1, và đặc biệt là chức vô địch World Cup 2018 cùng đội tuyển Pháp khi mới 19 tuổi.
-                            </p>
-
-                            <img src="https://via.placeholder.com/700x350/e74c3c/ffffff?text=Mbappe+PSG" alt="Mbappe tại PSG">
-
-                            <p>
-                                Với tốc độ phi thường, khả năng dứt điểm sắc bén và kỹ thuật điêu luyện, Mbappe được xem là một trong những cầu thủ xuất sắc nhất thế giới hiện nay. Anh đã ghi được hơn 200 bàn thắng cho PSG trong 6 mùa giải thi đấu.
-                            </p>
-
-                            <h3>Tham vọng chinh phục Madrid</h3>
-
-                            <p>
-                                Tại buổi họp báo ra mắt, Mbappe chia sẻ: "Đây là giấc mơ từ thuở nhỏ của tôi. Khoác áo Real Madrid là niềm tự hào lớn nhất trong sự nghiệp. Tôi sẽ cống hiến hết mình cho màu áo trắng và mang về nhiều danh hiệu cho đội bóng."
-                            </p>
-
-                            <p>
-                                Chủ tịch Florentino Perez cũng bày tỏ niềm vui: "Chúng tôi đã chờ đợi rất lâu, và giờ đây giấc mơ đã thành hiện thực. Mbappe sẽ là biểu tượng của Real Madrid trong thập kỷ tới. Anh ấy có tất cả những phẩm chất để trở thành huyền thoại tại Bernabeu."
-                            </p>
-
-                            <h3>Kỳ vọng từ người hâm mộ</h3>
-
-                            <img src="https://via.placeholder.com/700x350/2ecc71/ffffff?text=Fan+Real+Madrid" alt="CĐV Real Madrid">
-
-                            <p>
-                                Hàng ngàn CĐV Real Madrid đã đổ về sân Bernabeu để chào đón siêu sao mới. Họ kỳ vọng Mbappe sẽ cùng các đồng đội giúp đội bóng giành thêm nhiều danh hiệu Champions League và La Liga.
-                            </p>
-
-                            <p>
-                                HLV Carlo Ancelotti cho biết: "Mbappe là món quà tuyệt vời cho Real Madrid. Với tài năng của anh ấy, chúng tôi sẽ có một đội hình vô cùng mạnh mẽ để cạnh tranh ở mọi đấu trường."
-                            </p>
-
-                            <p>
-                                Trận ra mắt chính thức của Mbappe dự kiến sẽ diễn ra vào cuối tuần này trong trận đại chiến với Atletico Madrid tại vòng 5 La Liga. Người hâm mộ trên khắp thế giới đang háo hức chờ đợi màn trình diễn đầu tiên của siêu sao người Pháp trong màu áo Trắng.
-                            </p>
-                        </div>
-
-                        <!-- Link quay lại -->
-                        <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #ecf0f1;">
-                            <a href="category.php" class="back-link">← Quay lại danh sách tin</a>
-                            <span style="margin: 0 10px;">|</span>
-                            <a href="index.php" class="back-link">← Về trang chủ</a>
-                        </div>
+        <!-- SIDEBAR -->
+        <aside class="sidebar-column col-4">
+            <div class="latest-news-block">
+                <header class="latest-news-tit fw-bold d-inline-block padd-t-10 mar-b-15">
+                    <h2 class="fw-bold text-uppercase color-green-custom">📌 TIN MỚI NHẤT</h2>
+                </header>
+                <div class="latest-news-list">
+                    <div class="sidebar-article">
+                        <h4 style="font-size: 11px; color: #888; text-transform: uppercase;">Bóng đá</h4>
+                        <p><a href="#" class="color-main hover-color-24h">HAGL chia điểm Hà Nội FC</a></p>
+                    </div>
+                    <div class="sidebar-article">
+                        <h4 style="font-size: 11px; color: #888; text-transform: uppercase;">Tennis</h4>
+                        <p><a href="#" class="color-main hover-color-24h">Alcaraz vô địch Wimbledon</a></p>
+                    </div>
+                    <div class="sidebar-article">
+                        <h4 style="font-size: 11px; color: #888; text-transform: uppercase;">Đua xe</h4>
+                        <p><a href="#" class="color-main hover-color-24h">Verstappen về nhất Monaco GP</a></p>
+                    </div>
+                    <div class="sidebar-article">
+                        <h4 style="font-size: 11px; color: #888; text-transform: uppercase;">V-League</h4>
+                        <p><a href="#" class="color-main hover-color-24h">Lịch thi đấu Euro 2028</a></p>
+                    </div>
+                    <div class="sidebar-article">
+                        <h4 style="font-size: 11px; color: #888; text-transform: uppercase;">Kinh tế</h4>
+                        <p><a href="#" class="color-main hover-color-24h">VN-Index vượt mốc 1300 điểm</a></p>
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
+        </aside>
+    </div>
 
     <!-- FOOTER -->
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 Web Thể Thao. Tất cả quyền được bảo lưu.</p>
-            <p>Liên hệ: info@webthethao.com | Hotline: 1900-xxxx</p>
+    <footer style="margin-top:40px;padding:20px 0;border-top:1px solid #eee;color:#666;font-size:13px">
+        <div class="container" style="display:flex;justify-content:space-between;align-items:center">
+            <div>© 2025 Web Thể Thao - Tất cả vì người đọc.</div>
+            <div style="opacity:.6">
+                <a href="admin/login.php" title="Đăng nhập quản trị" style="color:#666;text-decoration:none">Quản trị</a>
+            </div>
         </div>
     </footer>
 </body>
