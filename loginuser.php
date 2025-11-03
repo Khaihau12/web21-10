@@ -1,14 +1,56 @@
+<?php
+session_start();
+require_once 'dbuser.php';
+$db = new dbuser();
+
+// Biến thông báo
+$message = '';
+$message_type = '';
+
+// Xử lý đăng nhập
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = trim($_POST['username'] ?? '');
+    $password = trim($_POST['password'] ?? '');
+    
+    if (empty($username) || empty($password)) {
+        $message = 'Vui lòng nhập đầy đủ thông tin!';
+        $message_type = 'error';
+    } else {
+        // Kiểm tra đăng nhập
+        $userData = $db->dangNhap($username, $password);
+        
+        if ($userData) {
+            // Đăng nhập thành công - Lưu thông tin vào session
+            $_SESSION['user_id'] = $userData['user_id'];
+            $_SESSION['username'] = $userData['username'];
+            $_SESSION['display_name'] = $userData['display_name'];
+            $_SESSION['role'] = $userData['role'];
+            
+            // Chuyển về trang chủ
+            header('Location: index.php');
+            exit;
+        } else {
+            $message = 'Tên đăng nhập hoặc mật khẩu không đúng!';
+            $message_type = 'error';
+        }
+    }
+}
+
+// Lấy danh mục cho menu
+$danhMuc = $db->layTatCaChuyenMuc();
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập - Web Thể Thao</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Đăng nhập - Tin Tức 24H</title>
+    <link rel="stylesheet" href="style.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         /* CSS riêng cho form đăng nhập */
         .login-container {
-            max-width: 400px;
+            max-width: 450px;
             margin: 50px auto;
             background-color: white;
             padding: 40px;
@@ -20,6 +62,7 @@
             color: #2c3e50;
             text-align: center;
             margin-bottom: 30px;
+            font-size: 28px;
         }
         
         .form-group {
@@ -80,7 +123,7 @@
         }
         
         .message {
-            padding: 10px;
+            padding: 12px;
             margin-bottom: 20px;
             border-radius: 4px;
             text-align: center;
@@ -100,38 +143,62 @@
     </style>
 </head>
 <body>
-    <!-- HEADER -->
-    <header>
+    <!-- HEADER - Thanh header chính -->
+    <header class="site-header">
         <div class="container">
-            <h1>⚽ Web Thể Thao</h1>
-            <p>Cập nhật tin tức thể thao mới nhất</p>
+            <div class="header-content">
+                <!-- Top Row: Logo + Search + User -->
+                <div class="header-top">
+                    <!-- Logo -->
+                    <div class="site-logo">
+                        <a href="index.php">
+                            <h1>📰 24H</h1>
+                            <span>Tin Tức Thể Thao</span>
+                        </a>
+                    </div>
+                    
+                    <!-- Search & User -->
+                    <div class="header-actions">
+                        <form action="index.php" method="get" class="search-form">
+                            <input type="text" name="q" placeholder="Tìm kiếm...">
+                            <button type="submit"><i class="fa fa-search"></i></button>
+                        </form>
+                        <div class="user-links">
+                            <a href="loginuser.php"><i class="fa fa-user"></i> Đăng nhập</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Navigation Menu - Dòng dưới -->
+                <nav class="main-navigation">
+                    <ul>
+                        <li><a href="index.php"><i class="fa fa-home"></i> Trang Chủ</a></li>
+                        <?php foreach($danhMuc as $dm): ?>
+                        <li><a href="category.php?id=<?php echo $dm['category_id']; ?>"><?php echo htmlspecialchars($dm['name']); ?></a></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </nav>
+            </div>
         </div>
     </header>
-
-    <!-- NAVIGATION -->
-    <nav>
-        <div class="container">
-            <ul>
-                <li><a href="index.php">Trang chủ</a></li>
-                <li><a href="loginuser.php">Đăng nhập</a></li>
-                <li><a href="register.php">Đăng ký</a></li>
-            </ul>
-        </div>
-    </nav>
 
     <!-- MAIN CONTENT -->
     <main>
         <div class="container">
             <div class="login-container">
-                <h2>Đăng nhập</h2>
+                <h2>🔐 Đăng nhập</h2>
                 
-                <!-- Thông báo (ẩn, dùng khi có PHP) -->
-                <!-- <div class="message error">Sai tên đăng nhập hoặc mật khẩu!</div> -->
+                <?php if ($message): ?>
+                <div class="message <?php echo $message_type; ?>">
+                    <?php echo htmlspecialchars($message); ?>
+                </div>
+                <?php endif; ?>
                 
                 <form method="POST" action="">
                     <div class="form-group">
                         <label for="username">Tên đăng nhập</label>
-                        <input type="text" id="username" name="username" placeholder="Nhập tên đăng nhập" required>
+                        <input type="text" id="username" name="username" placeholder="Nhập tên đăng nhập" 
+                               value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>" required autofocus>
                     </div>
                     
                     <div class="form-group">
@@ -146,15 +213,25 @@
                     <p>Chưa có tài khoản? <a href="register.php">Đăng ký ngay</a></p>
                     <p><a href="index.php">← Quay lại trang chủ</a></p>
                 </div>
+                
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; font-size: 13px; color: #666;">
+                    <strong>📝 Tài khoản demo:</strong><br>
+                    Username: <code style="background: #e9ecef; padding: 2px 6px; border-radius: 3px;">user</code><br>
+                    Password: <code style="background: #e9ecef; padding: 2px 6px; border-radius: 3px;">123456</code>
+                </div>
             </div>
         </div>
     </main>
 
     <!-- FOOTER -->
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 Web Thể Thao. Tất cả quyền được bảo lưu.</p>
-            <p>Liên hệ: info@webthethao.com | Hotline: 1900-xxxx</p>
+    <footer style="margin-top:40px;padding:20px 0;border-top:1px solid #eee;color:#666;font-size:13px">
+        <div class="container" style="display:flex;justify-content:space-between;align-items:center">
+            <div>© 2025 Web Thể Thao - Tất cả vì người đọc.</div>
+            <div style="opacity:.6">
+                <a href="admin/login.php" title="Đăng nhập quản trị" style="color:#666;text-decoration:none">Quản trị</a>
+            </div>
         </div>
     </footer>
 </body>
