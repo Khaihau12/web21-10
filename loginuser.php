@@ -216,11 +216,7 @@ $danhMuc = $db->layTatCaChuyenMuc();
                 
                 <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
                 
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; font-size: 13px; color: #666;">
-                    <strong>📝 Tài khoản demo:</strong><br>
-                    Username: <code style="background: #e9ecef; padding: 2px 6px; border-radius: 3px;">user</code><br>
-                    Password: <code style="background: #e9ecef; padding: 2px 6px; border-radius: 3px;">123456</code>
-                </div>
+
             </div>
         </div>
     </main>
