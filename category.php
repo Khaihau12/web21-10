@@ -3,131 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Danh sách tin tức - Web Thể Thao</title>
+    <title>Chuyên mục: Bóng đá</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
-    <!-- HEADER -->
-    <header>
+    <!-- TOP BAR -->
+    <header class="top-bar">
         <div class="container">
-            <h1>⚽ Web Thể Thao</h1>
-            <p>Cập nhật tin tức thể thao mới nhất</p>
+            <div class="logo">
+                <a href="index.php" aria-label="Trang chủ">
+                    24H 📰 <span class="logo-subtext">THỂ THAO - BÓNG ĐÁ</span>
+                </a>
+            </div>
+            <nav class="top-menu">
+                <ul>
+                    <li>
+                        <form action="index.php" method="get">
+                            <input type="text" name="q" placeholder="Nhập tin cần tìm">
+                            <button type="submit" style="border:none; background:transparent; padding:0; margin-left:6px;">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </form>
+                    </li>
+                    <li><a href="loginuser.php">Đăng nhập</a></li>
+                    <li><a href="register.php">Đăng ký</a></li>
+                </ul>
+            </nav>
         </div>
     </header>
 
-    <!-- NAVIGATION -->
-    <nav>
+    <!-- MAIN NAVIGATION -->
+    <nav class="main-nav">
         <div class="container">
             <ul>
-                <li><a href="index.php">Trang chủ</a></li>
-                <li><a href="loginuser.php">Đăng nhập</a></li>
-                <li><a href="register.php">Đăng ký</a></li>
+                <li><a href="index.php"><i class="fa fa-home"></i> TRANG CHỦ</a></li>
+                <li><a href="category.php?slug=bong-da" class="active">BÓNG ĐÁ</a></li>
+                <li><a href="category.php?slug=tennis">TENNIS</a></li>
+                <li><a href="category.php?slug=bong-ro">BÓNG RỔ</a></li>
+                <li><a href="category.php?slug=kinh-te">KINH TẾ</a></li>
+                <li><a href="category.php?slug=the-gioi">THẾ GIỚI</a></li>
             </ul>
         </div>
     </nav>
 
+
     <!-- MAIN CONTENT -->
-    <main>
-        <div class="container">
-            <!-- Tiêu đề chuyên mục -->
-            <div class="featured">
-                <h2>📁 Danh sách tất cả tin tức</h2>
-                <p>24 bài viết</p>
-            </div>
+    <div class="container" style="padding: 20px 0;">
+        <h1 class="page-title" style="font-size: 24px; border-bottom: 3px solid #78B43D; padding-bottom: 10px; margin-bottom: 25px; text-transform: uppercase;">
+            📁 BÓNG ĐÁ
+        </h1>
 
-            <!-- Layout 2 cột -->
-            <div class="two-column">
-                <!-- SIDEBAR -->
-                <aside class="sidebar">
-                    <h3>Chuyên mục</h3>
-                    <ul>
-                        <li><a href="category.php" style="color: #3498db; font-weight: bold;">📰 Tất cả tin tức</a></li>
-                        <li><a href="#">⚽ Bóng đá</a></li>
-                        <li><a href="#">🎾 Tennis</a></li>
-                        <li><a href="#">🏀 Bóng rổ</a></li>
-                        <li><a href="#">💰 Kinh tế</a></li>
-                        <li><a href="#">🌍 Thế giới</a></li>
-                    </ul>
-
-                    <h3 style="margin-top: 30px;">Tin mới nhất</h3>
-                    <ul>
-                        <li><a href="#">Mbappe gia nhập Real Madrid</a></li>
-                        <li><a href="#">Liverpool thắng Man City 3-1</a></li>
-                        <li><a href="#">Federer giải nghệ ở tuổi 41</a></li>
-                        <li><a href="#">Lịch thi đấu V-League 2025</a></li>
-                        <li><a href="#">Bitcoin tăng mạnh</a></li>
-                    </ul>
-                    
-                    <a href="index.php" class="back-link" style="display: inline-block; margin-top: 20px;">← Về trang chủ</a>
-                </aside>
-
-                <!-- CONTENT - CHỈ HIỂN THỊ DANH SÁCH BÀI VIẾT -->
-                <div class="content">
-                    <!-- Bài viết 1 -->
-                    <div class="article-card">
-                        <img src="https://via.placeholder.com/400x200/3498db/ffffff?text=Bong+Da" alt="Bóng đá">
-                        <div class="article-content">
-                            <h3>Mbappe chính thức gia nhập Real Madrid <span class="badge">HOT</span></h3>
-                            <div class="meta">
-                                <span>📅 11/10/2025</span> | 
-                                <span>📁 Bóng đá</span>
-                            </div>
-                            <p>Sau nhiều năm chờ đợi, cuối cùng siêu sao người Pháp đã trở thành người của Real Madrid...</p>
-                            <a href="#" class="read-more">Đọc tiếp →</a>
-                        </div>
-                    </div>
-
-                    <!-- Bài viết 2 -->
-                    <div class="article-card">
-                        <img src="https://via.placeholder.com/400x200/e74c3c/ffffff?text=Tennis" alt="Tennis">
-                        <div class="article-content">
-                            <h3>Alcaraz vô địch Wimbledon sau trận chung kết nghẹt thở</h3>
-                            <div class="meta">
-                                <span>📅 11/10/2025</span> | 
-                                <span>📁 Tennis</span>
-                            </div>
-                            <p>Tay vợt trẻ người Tây Ban Nha đã xuất sắc đánh bại đối thủ kỳ cựu...</p>
-                            <a href="#" class="read-more">Đọc tiếp →</a>
-                        </div>
-                    </div>
-
-                    <!-- Bài viết 3 -->
-                    <div class="article-card">
-                        <img src="https://via.placeholder.com/400x200/2ecc71/ffffff?text=V-League" alt="V-League">
-                        <div class="article-content">
-                            <h3>HAGL chia điểm với Hà Nội FC</h3>
-                            <div class="meta">
-                                <span>📅 10/10/2025</span> | 
-                                <span>📁 Bóng đá</span>
-                            </div>
-                            <p>Trận cầu tâm điểm vòng 15 V-League đã diễn ra vô cùng hấp dẫn...</p>
-                            <a href="#" class="read-more">Đọc tiếp →</a>
-                        </div>
-                    </div>
-
-                    <!-- Bài viết 4 -->
-                    <div class="article-card">
-                        <img src="https://via.placeholder.com/400x200/9b59b6/ffffff?text=Kinh+Te" alt="Kinh tế">
-                        <div class="article-content">
-                            <h3>Bitcoin biến động mạnh</h3>
-                            <div class="meta">
-                                <span>📅 09/10/2025</span> | 
-                                <span>📁 Kinh tế</span>
-                            </div>
-                            <p>Thị trường tiền điện tử đang trải qua giai đoạn đầy biến động...</p>
-                            <a href="#" class="read-more">Đọc tiếp →</a>
-                        </div>
-                    </div>
+        <div class="category-article-list">
+            <!-- Bài viết 1 -->
+            <article class="list-news-item d-flex" style="margin-bottom: 20px; border-bottom: 1px dotted #ccc; padding-bottom: 15px;">
+                <a href="article.php" class="list-news-img" style="flex: 0 0 220px; margin-right: 20px;">
+                    <img src="https://via.placeholder.com/220x140/3498db/ffffff?text=Bong+Da" alt="Bài viết" class="img-fluid" style="aspect-ratio: 16/9; object-fit: cover; border-radius: 4px;">
+                </a>
+                <div class="list-news-info">
+                    <h3 class="list-news-title">
+                        <a href="article.php" class="fw-bold color-main hover-color-24h" style="font-size: 20px; line-height: 1.3;">
+                            Mbappe chính thức gia nhập Real Madrid với hợp đồng 5 năm
+                        </a>
+                    </h3>
+                    <p style="font-size: 15px; color: #555; margin-top: 8px;">
+                        Sau nhiều năm chờ đợi, cuối cùng siêu sao người Pháp đã trở thành người của Real Madrid...
+                    </p>
                 </div>
-            </div>
+            </article>
+
+            <!-- Bài viết 2 -->
+            <article class="list-news-item d-flex" style="margin-bottom: 20px; border-bottom: 1px dotted #ccc; padding-bottom: 15px;">
+                <a href="#" class="list-news-img" style="flex: 0 0 220px; margin-right: 20px;">
+                    <img src="https://via.placeholder.com/220x140/e74c3c/ffffff?text=V-League" alt="Bài viết" class="img-fluid" style="aspect-ratio: 16/9; object-fit: cover; border-radius: 4px;">
+                </a>
+                <div class="list-news-info">
+                    <h3 class="list-news-title">
+                        <a href="#" class="fw-bold color-main hover-color-24h" style="font-size: 20px; line-height: 1.3;">
+                            Kết quả V-League: HAGL chia điểm kịch tính với Hà Nội FC
+                        </a>
+                    </h3>
+                    <p style="font-size: 15px; color: #555; margin-top: 8px;">
+                        Trận cầu tâm điểm vòng 15 V-League đã diễn ra vô cùng hấp dẫn với màn rượt đuổi tỷ số ngoạn mục...
+                    </p>
+                </div>
+            </article>
+
+            <!-- Bài viết 3 -->
+            <article class="list-news-item d-flex" style="margin-bottom: 20px; border-bottom: 1px dotted #ccc; padding-bottom: 15px;">
+                <a href="#" class="list-news-img" style="flex: 0 0 220px; margin-right: 20px;">
+                    <img src="https://via.placeholder.com/220x140/2ecc71/ffffff?text=Tactics" alt="Bài viết" class="img-fluid" style="aspect-ratio: 16/9; object-fit: cover; border-radius: 4px;">
+                </a>
+                <div class="list-news-info">
+                    <h3 class="list-news-title">
+                        <a href="#" class="fw-bold color-main hover-color-24h" style="font-size: 20px; line-height: 1.3;">
+                            Phân tích chiến thuật: Liverpool đã vô hiệu hóa Man City như thế nào?
+                        </a>
+                    </h3>
+                    <p style="font-size: 15px; color: #555; margin-top: 8px;">
+                        HLV Jurgen Klopp đã một lần nữa cho thấy tài năng của mình với một thế trận phòng ngự phản công bậc thầy...
+                    </p>
+                </div>
+            </article>
+
+            <!-- Bài viết 4 -->
+            <article class="list-news-item d-flex" style="margin-bottom: 20px; border-bottom: 1px dotted #ccc; padding-bottom: 15px;">
+                <a href="#" class="list-news-img" style="flex: 0 0 220px; margin-right: 20px;">
+                    <img src="https://via.placeholder.com/220x140/f39c12/ffffff?text=News" alt="Bài viết" class="img-fluid" style="aspect-ratio: 16/9; object-fit: cover; border-radius: 4px;">
+                </a>
+                <div class="list-news-info">
+                    <h3 class="list-news-title">
+                        <a href="#" class="fw-bold color-main hover-color-24h" style="font-size: 20px; line-height: 1.3;">
+                            Ronaldo lập hat-trick ở tuổi 39
+                        </a>
+                    </h3>
+                    <p style="font-size: 15px; color: #555; margin-top: 8px;">
+                        Siêu sao người Bồ Đào Nha tiếp tục chứng minh rằng tuổi tác chỉ là con số...
+                    </p>
+                </div>
+            </article>
         </div>
-    </main>
+    </div>
 
     <!-- FOOTER -->
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 Web Thể Thao. Tất cả quyền được bảo lưu.</p>
-            <p>Liên hệ: info@webthethao.com | Hotline: 1900-xxxx</p>
+    <footer style="margin-top:40px;padding:20px 0;border-top:1px solid #eee;color:#666;font-size:13px">
+        <div class="container" style="display:flex;justify-content:space-between;align-items:center">
+            <div>© 2025 Web Thể Thao - Tất cả vì người đọc.</div>
+            <div style="opacity:.6">
+                <a href="admin/login.php" title="Đăng nhập quản trị" style="color:#666;text-decoration:none">Quản trị</a>
+            </div>
         </div>
     </footer>
 </body>
