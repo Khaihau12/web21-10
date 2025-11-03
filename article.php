@@ -73,19 +73,15 @@ if ($editingCommentId && $isLoggedIn) {
     }
 }
 
-// Đếm lượt thích và lưu từ database
+// Lưu lượt xem bài viết (chỉ khi đã đăng nhập)
+if ($isLoggedIn) {
+    $db->luuLuotXem($currentUser['user_id'], $article_id);
+}
+
+// Đếm lượt thích, lưu và xem từ database
 $luotThich = $db->demLuotThich($article_id);
 $luotLuu = $db->demLuotLuu($article_id);
-
-// Đếm view từ session - tạm thời hiển thị 0 (có thể cập nhật sau)
-// Mỗi session đọc 1 lần, lưu trong session để đếm
-if (!isset($_SESSION['article_views'])) {
-    $_SESSION['article_views'] = [];
-}
-if (!in_array($article_id, $_SESSION['article_views'])) {
-    $_SESSION['article_views'][] = $article_id;
-}
-$luotXem = count($_SESSION['article_views']); // Tạm thời hiển thị tổng số bài đã xem trong session
+$luotXem = $db->demLuotXemBaiViet($article_id); // Đếm theo database
 
 // Kiểm tra user đã thích/lưu chưa
 $daThich = $isLoggedIn ? $db->daThichBaiViet($currentUser['user_id'], $article_id) : false;
