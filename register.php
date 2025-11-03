@@ -1,14 +1,63 @@
+<?php
+session_start();
+require_once 'dbuser.php';
+$db = new dbuser();
+
+// Biến thông báo
+$message = '';
+$message_type = '';
+
+// Xử lý đăng ký
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = trim($_POST['username'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $display_name = trim($_POST['display_name'] ?? '');
+    $password = trim($_POST['password'] ?? '');
+    $confirm_password = trim($_POST['confirm_password'] ?? '');
+    
+    // Validate dữ liệu
+    if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
+        $message = 'Vui lòng điền đầy đủ thông tin bắt buộc!';
+        $message_type = 'error';
+    } elseif ($password !== $confirm_password) {
+        $message = 'Mật khẩu nhập lại không khớp!';
+        $message_type = 'error';
+    } elseif (strlen($password) < 6) {
+        $message = 'Mật khẩu phải có ít nhất 6 ký tự!';
+        $message_type = 'error';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $message = 'Email không hợp lệ!';
+        $message_type = 'error';
+    } else {
+        // Gọi function đăng ký
+        $result = $db->dangKy($username, $password, $email, $display_name);
+        
+        if ($result['success']) {
+            $message = 'Đăng ký thành công! Chuyển đến trang đăng nhập sau 2 giây...';
+            $message_type = 'success';
+            header('refresh:2;url=loginuser.php');
+        } else {
+            $message = $result['message'];
+            $message_type = 'error';
+        }
+    }
+}
+
+// Lấy danh mục cho menu
+$danhMuc = $db->layTatCaChuyenMuc();
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng ký - Web Thể Thao</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Đăng ký - Tin Tức 24H</title>
+    <link rel="stylesheet" href="style.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         /* CSS riêng cho form đăng ký */
         .register-container {
-            max-width: 450px;
+            max-width: 500px;
             margin: 50px auto;
             background-color: white;
             padding: 40px;
@@ -80,7 +129,7 @@
         }
         
         .message {
-            padding: 10px;
+            padding: 12px;
             margin-bottom: 20px;
             border-radius: 4px;
             text-align: center;
@@ -100,65 +149,99 @@
     </style>
 </head>
 <body>
-    <!-- HEADER -->
-    <header>
+    <!-- HEADER - Thanh header chính -->
+    <header class="site-header">
         <div class="container">
-            <h1>⚽ Web Thể Thao</h1>
-            <p>Cập nhật tin tức thể thao mới nhất</p>
+            <div class="header-content">
+                <!-- Top Row: Logo + Search + User -->
+                <div class="header-top">
+                    <!-- Logo -->
+                    <div class="site-logo">
+                        <a href="index.php">
+                            <h1>📰 24H</h1>
+                            <span>Tin Tức Thể Thao</span>
+                        </a>
+                    </div>
+                    
+                    <!-- Search & User -->
+                    <div class="header-actions">
+                        <form action="index.php" method="get" class="search-form">
+                            <input type="text" name="q" placeholder="Tìm kiếm...">
+                            <button type="submit"><i class="fa fa-search"></i></button>
+                        </form>
+                        <div class="user-links">
+                            <a href="loginuser.php"><i class="fa fa-user"></i> Đăng nhập</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Navigation Menu - Dòng dưới -->
+                <nav class="main-navigation">
+                    <ul>
+                        <li><a href="index.php"><i class="fa fa-home"></i> Trang Chủ</a></li>
+                        <?php foreach($danhMuc as $dm): ?>
+                        <li><a href="category.php?id=<?php echo $dm['category_id']; ?>"><?php echo htmlspecialchars($dm['name']); ?></a></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </nav>
+            </div>
         </div>
     </header>
-
-    <!-- NAVIGATION -->
-    <nav>
-        <div class="container">
-            <ul>
-                <li><a href="index.php">Trang chủ</a></li>
-                <li><a href="loginuser.php">Đăng nhập</a></li>
-                <li><a href="register.php">Đăng ký</a></li>
-            </ul>
-        </div>
-    </nav>
 
     <!-- MAIN CONTENT -->
     <main>
         <div class="container">
             <div class="register-container">
-                <h2>Đăng ký tài khoản</h2>
+                <h2>📝 Đăng ký tài khoản</h2>
                 
-                <!-- Thông báo (ẩn, dùng khi có PHP) -->
-                <!-- <div class="message success">Đăng ký thành công! Vui lòng đăng nhập.</div> -->
+                <?php if ($message): ?>
+                    <div class="message <?php echo $message_type; ?>">
+                        <?php echo $message; ?>
+                    </div>
+                <?php endif; ?>
                 
                 <form method="POST" action="">
                     <div class="form-group">
-                        <label for="username">Tên đăng nhập *</label>
-                        <input type="text" id="username" name="username" placeholder="Nhập tên đăng nhập" required>
+                        <label for="username">Tên đăng nhập <span style="color:red;">*</span></label>
+                        <input type="text" id="username" name="username" 
+                               placeholder="Nhập tên đăng nhập (không dấu, không khoảng trắng)" 
+                               value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="email">Email *</label>
-                        <input type="email" id="email" name="email" placeholder="Nhập email" required>
+                        <label for="email">Email <span style="color:red;">*</span></label>
+                        <input type="email" id="email" name="email" 
+                               placeholder="Nhập email (vd: user@gmail.com)" 
+                               value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="display_name">Tên hiển thị</label>
-                        <input type="text" id="display_name" name="display_name" placeholder="Nhập tên hiển thị">
+                        <input type="text" id="display_name" name="display_name" 
+                               placeholder="Nhập tên hiển thị (có thể để trống)" 
+                               value="<?php echo htmlspecialchars($_POST['display_name'] ?? ''); ?>">
+                        <small style="color:#999;font-size:12px;">Nếu để trống, hệ thống sẽ dùng tên đăng nhập</small>
                     </div>
                     
                     <div class="form-group">
-                        <label for="password">Mật khẩu *</label>
-                        <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" required>
+                        <label for="password">Mật khẩu <span style="color:red;">*</span></label>
+                        <input type="password" id="password" name="password" 
+                               placeholder="Nhập mật khẩu (ít nhất 6 ký tự)" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="confirm_password">Nhập lại mật khẩu *</label>
-                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Nhập lại mật khẩu" required>
+                        <label for="confirm_password">Nhập lại mật khẩu <span style="color:red;">*</span></label>
+                        <input type="password" id="confirm_password" name="confirm_password" 
+                               placeholder="Nhập lại mật khẩu" required>
                     </div>
                     
-                    <button type="submit" class="btn-register">Đăng ký</button>
+                    <button type="submit" class="btn-register">
+                        <i class="fa fa-user-plus"></i> Đăng ký
+                    </button>
                 </form>
                 
                 <div class="form-footer">
-                    <p>Đã có tài khoản? <a href="loginuser.php">Đăng nhập ngay</a></p>
+                    <p>Đã có tài khoản? <a href="loginuser.php">👉 Đăng nhập ngay</a></p>
                     <p><a href="index.php">← Quay lại trang chủ</a></p>
                 </div>
             </div>
@@ -166,10 +249,12 @@
     </main>
 
     <!-- FOOTER -->
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 Web Thể Thao. Tất cả quyền được bảo lưu.</p>
-            <p>Liên hệ: info@webthethao.com | Hotline: 1900-xxxx</p>
+    <footer style="margin-top:40px;padding:20px 0;border-top:1px solid #eee;color:#666;font-size:13px">
+        <div class="container" style="display:flex;justify-content:space-between;align-items:center">
+            <div>© 2025 Web Thể Thao - Tất cả vì người đọc.</div>
+            <div style="opacity:.6">
+                <a href="admin/login.php" title="Đăng nhập quản trị" style="color:#666;text-decoration:none">Quản trị</a>
+            </div>
         </div>
     </footer>
 </body>
