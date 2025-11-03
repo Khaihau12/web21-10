@@ -12,6 +12,43 @@ if (!$db->kiemTraDangNhap()) {
 // Lấy thông tin user
 $currentUser = $db->layUserHienTai();
 
+// Biến thông báo
+$message = '';
+$message_type = '';
+
+// Xử lý đổi mật khẩu
+if (isset($_POST['change_password'])) {
+    $mat_khau_cu = trim($_POST['current_password'] ?? '');
+    $mat_khau_moi = trim($_POST['new_password'] ?? '');
+    $nhap_lai_mat_khau = trim($_POST['confirm_password'] ?? '');
+    
+    // Validate
+    if (empty($mat_khau_cu) || empty($mat_khau_moi) || empty($nhap_lai_mat_khau)) {
+        $message = 'Vui lòng điền đầy đủ thông tin!';
+        $message_type = 'error';
+    } elseif ($mat_khau_moi !== $nhap_lai_mat_khau) {
+        $message = 'Mật khẩu mới nhập lại không khớp!';
+        $message_type = 'error';
+    } elseif (strlen($mat_khau_moi) < 6) {
+        $message = 'Mật khẩu mới phải có ít nhất 6 ký tự!';
+        $message_type = 'error';
+    } else {
+        // Gọi function đổi mật khẩu
+        $result = $db->doiMatKhau($currentUser['user_id'], $mat_khau_cu, $mat_khau_moi);
+        $message = $result['message'];
+        $message_type = $result['success'] ? 'success' : 'error';
+    }
+}
+
+// Lấy thống kê của user
+$soBaiDaDoc = $db->demBaiDaDoc($currentUser['user_id']);
+$soBaiYeuThich = $db->demBaiYeuThich($currentUser['user_id']);
+$soBaiDaLuu = $db->demBaiDaLuu($currentUser['user_id']);
+
+// Lấy danh sách bài đã đọc và bài yêu thích
+$danhSachBaiDaDoc = $db->layBaiDaDoc($currentUser['user_id'], 10);
+$danhSachBaiYeuThich = $db->layBaiYeuThich($currentUser['user_id'], 10);
+
 // Lấy danh mục cho menu
 $danhMuc = $db->layTatCaChuyenMuc();
 
@@ -155,6 +192,22 @@ if (isset($_POST["logout"])) {
             color: #bdc3c7;
             margin-bottom: 15px;
         }
+        .message {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .message.error {
+            background-color: #ffe6e6;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+        .message.success {
+            background-color: #e6ffe6;
+            color: #27ae60;
+            border: 1px solid #27ae60;
+        }
     </style>
 </head>
 <body>
@@ -216,8 +269,9 @@ if (isset($_POST["logout"])) {
                     </ul>
                     <h3 style="margin-top: 30px;">Thống kê</h3>
                     <ul>
-                        <li>📖 Bài đã đọc: <strong>12</strong></li>
-                        <li>❤️ Bài yêu thích: <strong>5</strong></li>
+                        <li>📖 Bài đã đọc: <strong><?php echo $soBaiDaDoc; ?></strong></li>
+                        <li>❤️ Bài yêu thích: <strong><?php echo $soBaiYeuThich; ?></strong></li>
+                        <li>🔖 Bài đã lưu: <strong><?php echo $soBaiDaLuu; ?></strong></li>
                         <li>📅 Ngày tham gia: <strong><?php echo date('d/m/Y', strtotime($currentUser['created_at'] ?? 'now')); ?></strong></li>
                     </ul>
                 </aside>
@@ -239,36 +293,87 @@ if (isset($_POST["logout"])) {
                         </div>
                         <div id="recent" class="tab-content active">
                             <h3 style="margin-bottom: 20px;">Bài viết đã đọc gần đây</h3>
+                            <?php if(count($danhSachBaiDaDoc) > 0): ?>
+                                <?php foreach($danhSachBaiDaDoc as $bai): ?>
+                                <div class="article-card" style="margin-bottom: 15px;">
+                                    <img src="<?php echo $bai['image_url']; ?>" alt="<?php echo htmlspecialchars($bai['title']); ?>">
+                                    <div class="article-content">
+                                        <h3>
+                                            <a href="article.php?id=<?php echo $bai['article_id']; ?>">
+                                                <?php echo htmlspecialchars($bai['title']); ?>
+                                            </a>
+                                        </h3>
+                                        <div class="meta">
+                                            <span>📁 <?php echo htmlspecialchars($bai['category_name']); ?></span> |
+                                            <span>👁️ Đọc lúc: <?php echo date('d/m/Y H:i', strtotime($bai['viewed_at'])); ?></span>
+                                        </div>
+                                        <p><?php echo htmlspecialchars(substr($bai['summary'], 0, 100)); ?>...</p>
+                                        <a href="article.php?id=<?php echo $bai['article_id']; ?>" class="read-more">Đọc lại →</a>
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
                             <div class="empty-message">
                                 <i class="fa fa-book-open"></i>
                                 <p>Bạn chưa đọc bài viết nào</p>
                                 <a href="index.php">Về trang chủ xem tin</a>
                             </div>
+                            <?php endif; ?>
                         </div>
                         <div id="favorite" class="tab-content">
                             <h3 style="margin-bottom: 20px;">Bài viết yêu thích</h3>
+                            <?php if(count($danhSachBaiYeuThich) > 0): ?>
+                                <?php foreach($danhSachBaiYeuThich as $bai): ?>
+                                <div class="article-card" style="margin-bottom: 15px;">
+                                    <img src="<?php echo $bai['image_url']; ?>" alt="<?php echo htmlspecialchars($bai['title']); ?>">
+                                    <div class="article-content">
+                                        <h3>
+                                            <a href="article.php?id=<?php echo $bai['article_id']; ?>">
+                                                <?php echo htmlspecialchars($bai['title']); ?>
+                                            </a>
+                                        </h3>
+                                        <div class="meta">
+                                            <span>📁 <?php echo htmlspecialchars($bai['category_name']); ?></span> |
+                                            <span>❤️ Thích lúc: <?php echo date('d/m/Y H:i', strtotime($bai['liked_at'])); ?></span>
+                                        </div>
+                                        <p><?php echo htmlspecialchars(substr($bai['summary'], 0, 100)); ?>...</p>
+                                        <a href="article.php?id=<?php echo $bai['article_id']; ?>" class="read-more">Đọc tiếp →</a>
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
                             <div class="empty-message">
                                 <i class="fa fa-heart"></i>
                                 <p>Bạn chưa có bài viết yêu thích nào</p>
                                 <a href="index.php">Về trang chủ xem tin</a>
                             </div>
+                            <?php endif; ?>
                         </div>
                         <div id="password" class="tab-content">
                             <h3 style="margin-bottom: 20px;">Đổi mật khẩu</h3>
+                            
+                            <?php if ($message && isset($_POST['change_password'])): ?>
+                                <div class="message <?php echo $message_type; ?>">
+                                    <?php echo $message; ?>
+                                </div>
+                            <?php endif; ?>
+                            
                             <form method="POST" class="change-password-form">
                                 <div class="form-group">
-                                    <label>Mật khẩu hiện tại *</label>
-                                    <input type="password" name="current_password" required>
+                                    <label>Mật khẩu hiện tại <span style="color:red;">*</span></label>
+                                    <input type="password" name="current_password" placeholder="Nhập mật khẩu hiện tại" required>
                                 </div>
                                 <div class="form-group">
-                                    <label>Mật khẩu mới *</label>
-                                    <input type="password" name="new_password" required>
+                                    <label>Mật khẩu mới <span style="color:red;">*</span></label>
+                                    <input type="password" name="new_password" placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)" required>
                                 </div>
                                 <div class="form-group">
-                                    <label>Nhập lại mật khẩu mới *</label>
-                                    <input type="password" name="confirm_password" required>
+                                    <label>Nhập lại mật khẩu mới <span style="color:red;">*</span></label>
+                                    <input type="password" name="confirm_password" placeholder="Nhập lại mật khẩu mới" required>
                                 </div>
-                                <button type="submit" name="change_password" class="btn-submit">Đổi mật khẩu</button>
+                                <button type="submit" name="change_password" class="btn-submit">
+                                    <i class="fa fa-key"></i> Đổi mật khẩu
+                                </button>
                             </form>
                         </div>
                     </div>
