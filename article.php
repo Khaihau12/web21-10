@@ -1,10 +1,113 @@
+<?php
+session_start();
+require_once 'dbuser.php';
+$db = new dbuser();
+
+// Lấy article_id từ URL
+$article_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+// Lấy chi tiết bài viết
+$article = $db->layChiTietBaiViet($article_id);
+
+// Nếu không tìm thấy bài viết, chuyển về trang chủ
+if (!$article) {
+    header('Location: index.php');
+    exit;
+}
+
+// Kiểm tra đăng nhập
+$isLoggedIn = $db->kiemTraDangNhap();
+$currentUser = $isLoggedIn ? $db->layUserHienTai() : null;
+
+// Xử lý thích bài viết
+if ($isLoggedIn && isset($_POST['like_toggle'])) {
+    $db->toggleThichBaiViet($currentUser['user_id'], $article_id);
+    header("Location: article.php?id=$article_id");
+    exit;
+}
+
+// Xử lý lưu bài viết
+if ($isLoggedIn && isset($_POST['save_toggle'])) {
+    $db->toggleLuuBaiViet($currentUser['user_id'], $article_id);
+    header("Location: article.php?id=$article_id");
+    exit;
+}
+
+// Xử lý thêm bình luận
+if ($isLoggedIn && isset($_POST['add_comment'])) {
+    $content = trim($_POST['comment_content']);
+    if (!empty($content)) {
+        $db->themBinhLuan($article_id, $currentUser['user_id'], $content);
+        header("Location: article.php?id=$article_id#comments");
+        exit;
+    }
+}
+
+// Xử lý xóa bình luận
+if ($isLoggedIn && isset($_POST['delete_comment'])) {
+    $comment_id = (int)$_POST['comment_id'];
+    $db->xoaBinhLuan($comment_id, $currentUser['user_id']);
+    header("Location: article.php?id=$article_id#comments");
+    exit;
+}
+
+// Xử lý sửa bình luận
+if ($isLoggedIn && isset($_POST['edit_comment'])) {
+    $comment_id = (int)$_POST['comment_id'];
+    $content = trim($_POST['comment_content']);
+    if (!empty($content)) {
+        $db->suaBinhLuan($comment_id, $currentUser['user_id'], $content);
+        header("Location: article.php?id=$article_id#comments");
+        exit;
+    }
+}
+
+// Lấy comment_id nếu đang edit
+$editingCommentId = isset($_GET['edit']) ? (int)$_GET['edit'] : null;
+$editingComment = null;
+if ($editingCommentId && $isLoggedIn) {
+    $editingComment = $db->layMotBinhLuan($editingCommentId);
+    // Kiểm tra có phải comment của user không
+    if ($editingComment && $editingComment['user_id'] != $currentUser['user_id']) {
+        $editingComment = null;
+    }
+}
+
+// Đếm lượt thích và lưu từ database
+$luotThich = $db->demLuotThich($article_id);
+$luotLuu = $db->demLuotLuu($article_id);
+
+// Đếm view từ session - tạm thời hiển thị 0 (có thể cập nhật sau)
+// Mỗi session đọc 1 lần, lưu trong session để đếm
+if (!isset($_SESSION['article_views'])) {
+    $_SESSION['article_views'] = [];
+}
+if (!in_array($article_id, $_SESSION['article_views'])) {
+    $_SESSION['article_views'][] = $article_id;
+}
+$luotXem = count($_SESSION['article_views']); // Tạm thời hiển thị tổng số bài đã xem trong session
+
+// Kiểm tra user đã thích/lưu chưa
+$daThich = $isLoggedIn ? $db->daThichBaiViet($currentUser['user_id'], $article_id) : false;
+$daLuu = $isLoggedIn ? $db->daLuuBaiViet($currentUser['user_id'], $article_id) : false;
+
+// Lấy bình luận
+$binhLuan = $db->layBinhLuan($article_id);
+$soBinhLuan = $db->demBinhLuan($article_id);
+
+// Lấy danh mục cho menu
+$danhMuc = $db->layTatCaChuyenMuc();
+
+// Lấy tin sidebar
+$tinSidebar = $db->layTatCaBaiViet(5);
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mbappe chính thức gia nhập Real Madrid - Web Thể Thao</title>
-    <link rel="stylesheet" href="style.css">
+    <title><?php echo htmlspecialchars($article['title']); ?> - Tin Tức 24H</title>
+    <link rel="stylesheet" href="style.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         /* CSS riêng cho trang chi tiết bài viết */
@@ -89,148 +192,228 @@
     </style>
 </head>
 <body>
-    <!-- TOP BAR -->
-    <header class="top-bar">
+    <!-- HEADER - Thanh header chính -->
+    <header class="site-header">
         <div class="container">
-            <div class="logo">
-                <a href="index.php" aria-label="Trang chủ">
-                    24H 📰 <span class="logo-subtext">THỂ THAO - BÓNG ĐÁ</span>
-                </a>
-            </div>
-            <nav class="top-menu">
-                <ul>
-                    <li>
-                        <form action="index.php" method="get">
-                            <input type="text" name="q" placeholder="Nhập tin cần tìm">
-                            <button type="submit" style="border:none; background:transparent; padding:0; margin-left:6px;">
-                                <i class="fa fa-search"></i>
-                            </button>
+            <div class="header-content">
+                <!-- Top Row: Logo + Search + User -->
+                <div class="header-top">
+                    <!-- Logo -->
+                    <div class="site-logo">
+                        <a href="index.php">
+                            <h1>📰 24H</h1>
+                            <span>Tin Tức Thể Thao</span>
+                        </a>
+                    </div>
+                    
+                    <!-- Search & User -->
+                    <div class="header-actions">
+                        <form action="index.php" method="get" class="search-form">
+                            <input type="text" name="q" placeholder="Tìm kiếm...">
+                            <button type="submit"><i class="fa fa-search"></i></button>
                         </form>
-                    </li>
-                    <li><a href="loginuser.php">Đăng nhập</a></li>
-                    <li><a href="register.php">Đăng ký</a></li>
-                </ul>
-            </nav>
+                        <div class="user-links">
+                            <?php if($isLoggedIn): ?>
+                                <a href="indexuser.php"><i class="fa fa-user"></i> <?php echo htmlspecialchars($currentUser['display_name'] ?: $currentUser['username']); ?></a>
+                            <?php else: ?>
+                                <a href="loginuser.php"><i class="fa fa-user"></i> Đăng nhập</a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Navigation Menu - Dòng dưới -->
+                <nav class="main-navigation">
+                    <ul>
+                        <li><a href="index.php"><i class="fa fa-home"></i> Trang Chủ</a></li>
+                        <?php foreach($danhMuc as $dm): ?>
+                        <li><a href="category.php?id=<?php echo $dm['category_id']; ?>"><?php echo htmlspecialchars($dm['name']); ?></a></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </nav>
+            </div>
         </div>
     </header>
 
-    <!-- MAIN NAVIGATION -->
-    <nav class="main-nav">
-        <div class="container">
-            <ul>
-                <li><a href="index.php"><i class="fa fa-home"></i> TRANG CHỦ</a></li>
-                <li><a href="category.php?slug=bong-da">BÓNG ĐÁ</a></li>
-                <li><a href="category.php?slug=tennis">TENNIS</a></li>
-                <li><a href="category.php?slug=bong-ro">BÓNG RỔ</a></li>
-                <li><a href="category.php?slug=kinh-te">KINH TẾ</a></li>
-                <li><a href="category.php?slug=the-gioi">THẾ GIỚI</a></li>
-            </ul>
-        </div>
-    </nav>
-
     <!-- MAIN CONTENT -->
+    <main>
     <div class="container content-area d-flex" style="padding-top: 20px;">
-        <main class="main-column col-8 main-column-pad">
+        <div class="main-column col-8 main-column-pad">
             <!-- Breadcrumb -->
             <div class="breadcrumb">
                 <a href="index.php">Trang chủ</a> &raquo; 
-                <a href="category.php?slug=bong-da">Bóng đá</a>
+                <a href="category.php?id=<?php echo $article['category_id']; ?>"><?php echo htmlspecialchars($article['category_name']); ?></a>
             </div>
             
             <!-- Bài viết chi tiết -->
             <article class="full-article">
                 <div class="article-header">
-                    <h1 class="article-title">Mbappe chính thức gia nhập Real Madrid với hợp đồng 5 năm</h1>
+                    <h1 class="article-title"><?php echo htmlspecialchars($article['title']); ?></h1>
                     <div class="article-meta-info d-flex justify-content-between align-items-center">
                         <span class="meta-left">
-                            Chuyên mục: <span class="date-time">Bóng đá</span>
+                            Chuyên mục: <a href="category.php?id=<?php echo $article['category_id']; ?>" style="color:#3498db;"><?php echo htmlspecialchars($article['category_name']); ?></a>
                             &nbsp;•&nbsp;
-                            <span class="date-time">11/10/2025 10:30 AM</span>
+                            <span class="date-time"><?php echo date('d/m/Y H:i', strtotime($article['created_at'])); ?></span>
+                            &nbsp;•&nbsp;
+                            <span class="view-count">👁️ <?php echo number_format($luotXem); ?> lượt xem</span>
                         </span>
                     </div>
                 </div>
             
                 <div class="article-content">
+                    <?php if(!empty($article['summary'])): ?>
                     <p style="font-weight: bold; color: #000; font-size: 19px; line-height: 1.5; margin-bottom: 20px;">
-                        Sau nhiều năm chờ đợi, cuối cùng siêu sao người Pháp Kylian Mbappe đã trở thành người của Real Madrid.
+                        <?php echo htmlspecialchars($article['summary']); ?>
                     </p>
-                    
-                    <img src="https://via.placeholder.com/800x450/3498db/ffffff?text=Mbappe+Real+Madrid" alt="Mbappe" class="featured-image">
+                    <?php endif; ?>
                     
                     <div class="article-body">
-                        <p>Đây là một bản hợp đồng thế kỷ, hứa hẹn sẽ thay đổi cán cân quyền lực của bóng đá châu Âu trong nhiều năm tới.</p>
-                        
-                        <h3>Hợp đồng "khủng"</h3>
-                        <p>Theo nguồn tin từ các phương tiện truyền thông Tây Ban Nha, Mbappe sẽ ký hợp đồng 5 năm với mức lương lên tới 30 triệu euro mỗi năm, chưa tính các khoản thưởng và hoa hồng.</p>
-                        
-                        <img src="https://via.placeholder.com/600x400/e74c3c/ffffff?text=Contract+Signing" alt="Signing" style="max-width: 100%; height: auto; margin: 20px 0; border-radius: 8px;">
-                        
-                        <h3>Kỳ vọng lớn</h3>
-                        <p>Người hâm mộ Real Madrid đang rất phấn khích trước sự xuất hiện của Mbappe. Họ tin rằng anh sẽ là mảnh ghép hoàn hảo cho đội hình "Los Blancos".</p>
-                        
-                        <p>Ở tuổi 25, Mbappe đang ở đỉnh cao sự nghiệp với tốc độ bứt phá kinh hoàng, kỹ thuật tuyệt vời và khả năng ghi bàn ấn tượng.</p>
-                        
-                        <h3>Tương lai rực rỡ</h3>
-                        <p>Với sự có mặt của Mbappe, Real Madrid hứa hẹn sẽ tiếp tục thống trị bóng đá châu Âu trong nhiều năm tới. Đây là bước đi quan trọng trong chiến lược xây dựng đội hình mới của CLB.</p>
+                        <?php echo $article['content']; ?>
                     </div>
                 </div>
             </article>
             
             <!-- Actions -->
             <section class="article-actions" style="margin-top:16px;border-top:1px solid #eee;padding-top:12px;">
-                <form method="post" style="display:inline">
-                    <button type="submit" name="like_toggle" value="1" style="padding:6px 10px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer">
-                        🤍 Thích (0)
-                    </button>
-                </form>
-                <form method="post" style="display:inline;margin-left:8px;">
-                    <button type="submit" name="save_toggle" value="1" style="padding:6px 10px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer">
-                        📌 Lưu đọc sau
-                    </button>
-                </form>
+                <?php if($isLoggedIn): ?>
+                    <form method="post" style="display:inline">
+                        <button type="submit" name="like_toggle" value="1" style="padding:6px 10px;border-radius:6px;border:1px solid <?php echo $daThich ? '#e74c3c' : '#ddd'; ?>;background:<?php echo $daThich ? '#ffe6e6' : '#fff'; ?>;cursor:pointer;color:<?php echo $daThich ? '#e74c3c' : '#333'; ?>">
+                            <?php echo $daThich ? '❤️' : '🤍'; ?> Thích (<?php echo number_format($luotThich); ?>)
+                        </button>
+                    </form>
+                    <form method="post" style="display:inline;margin-left:8px;">
+                        <button type="submit" name="save_toggle" value="1" style="padding:6px 10px;border-radius:6px;border:1px solid <?php echo $daLuu ? '#3498db' : '#ddd'; ?>;background:<?php echo $daLuu ? '#e6f2ff' : '#fff'; ?>;cursor:pointer;color:<?php echo $daLuu ? '#3498db' : '#333'; ?>">
+                            <?php echo $daLuu ? '📌' : '🔖'; ?> <?php echo $daLuu ? 'Đã lưu' : 'Lưu đọc sau'; ?> (<?php echo number_format($luotLuu); ?>)
+                        </button>
+                    </form>
+                <?php else: ?>
+                    <a href="loginuser.php" style="padding:6px 10px;border-radius:6px;border:1px solid #ddd;background:#fff;text-decoration:none;color:#333;display:inline-block">
+                        🤍 Thích (<?php echo number_format($luotThich); ?>)
+                    </a>
+                    <a href="loginuser.php" style="padding:6px 10px;border-radius:6px;border:1px solid #ddd;background:#fff;text-decoration:none;color:#333;display:inline-block;margin-left:8px;">
+                        🔖 Lưu đọc sau (<?php echo number_format($luotLuu); ?>)
+                    </a>
+                    <span style="color:#999;font-size:12px;margin-left:8px;">• <a href="loginuser.php">Đăng nhập</a> để thích và lưu bài viết</span>
+                <?php endif; ?>
             </section>
 
-            <!-- Comments -->
-            <section class="comments" style="margin-top:20px;">
-                <h3>Bình luận</h3>
-                <p><a href="loginuser.php">Đăng nhập</a> để bình luận.</p>
+            <!-- BÌNH LUẬN -->
+            <section id="comments" class="comments-section" style="margin-top:30px;padding-top:20px;border-top:2px solid #eee;">
+                <h3 style="font-size:20px;font-weight:bold;margin-bottom:15px;">
+                    💬 Bình luận (<?php echo number_format($soBinhLuan); ?>)
+                </h3>
+
+                <!-- Form thêm/sửa bình luận -->
+                <?php if($isLoggedIn): ?>
+                <div class="comment-form" style="margin-bottom:25px;padding:15px;background:#f8f9fa;border-radius:8px;">
+                    <?php if($editingComment): ?>
+                    <!-- Form sửa bình luận -->
+                    <form method="post" action="">
+                        <div style="margin-bottom:10px;">
+                            <strong><?php echo htmlspecialchars($currentUser['display_name'] ?: $currentUser['username']); ?></strong>
+                            <span style="color:#f39c12;margin-left:10px;">✏️ Đang chỉnh sửa bình luận</span>
+                        </div>
+                        <input type="hidden" name="comment_id" value="<?php echo $editingComment['comment_id']; ?>">
+                        <textarea name="comment_content" rows="3" placeholder="Viết bình luận..." 
+                            style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;resize:vertical;" required><?php echo htmlspecialchars($editingComment['content']); ?></textarea>
+                        <div style="margin-top:10px;">
+                            <button type="submit" name="edit_comment" value="1" 
+                                style="padding:8px 20px;background:#f39c12;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:500;">
+                                💾 Lưu thay đổi
+                            </button>
+                            <a href="article.php?id=<?php echo $article_id; ?>#comments" 
+                                style="margin-left:10px;padding:8px 20px;background:#95a5a6;color:#fff;border:none;border-radius:6px;text-decoration:none;display:inline-block;">
+                                ❌ Hủy
+                            </a>
+                        </div>
+                    </form>
+                    <?php else: ?>
+                    <!-- Form thêm bình luận mới -->
+                    <form method="post" action="">
+                        <div style="margin-bottom:10px;">
+                            <strong><?php echo htmlspecialchars($currentUser['display_name'] ?: $currentUser['username']); ?></strong>
+                        </div>
+                        <textarea name="comment_content" rows="3" placeholder="Viết bình luận..." 
+                            style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;resize:vertical;" required></textarea>
+                        <button type="submit" name="add_comment" value="1" 
+                            style="margin-top:10px;padding:8px 20px;background:#3498db;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:500;">
+                            Gửi bình luận
+                        </button>
+                    </form>
+                    <?php endif; ?>
+                </div>
+                <?php else: ?>
+                <div style="margin-bottom:20px;padding:15px;background:#fff3cd;border:1px solid #ffc107;border-radius:6px;">
+                    <a href="loginuser.php" style="color:#856404;font-weight:500;">👤 Đăng nhập</a> để tham gia bình luận
+                </div>
+                <?php endif; ?>
+
+                <!-- Danh sách bình luận -->
                 <div class="comment-list">
-                    <p>Chưa có bình luận.</p>
+                    <?php if(count($binhLuan) > 0): ?>
+                        <?php foreach($binhLuan as $comment): ?>
+                        <div class="comment-item" style="padding:15px;margin-bottom:15px;background:#fff;border:1px solid #e3e3e3;border-radius:8px;">
+                            <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
+                                <div>
+                                    <strong style="color:#2c3e50;font-size:14px;">
+                                        <?php echo htmlspecialchars($comment['display_name'] ?: $comment['username']); ?>
+                                    </strong>
+                                    <span style="color:#999;font-size:12px;margin-left:8px;">
+                                        <?php echo date('d/m/Y H:i', strtotime($comment['created_at'])); ?>
+                                    </span>
+                                </div>
+                                <?php if($isLoggedIn && $comment['user_id'] == $currentUser['user_id']): ?>
+                                <div>
+                                    <a href="article.php?id=<?php echo $article_id; ?>&edit=<?php echo $comment['comment_id']; ?>#comments" 
+                                        style="padding:4px 8px;background:#f39c12;color:#fff;border:none;border-radius:4px;text-decoration:none;font-size:12px;margin-right:5px;">
+                                        ✏️ Sửa
+                                    </a>
+                                    <form method="post" style="display:inline;" onsubmit="return confirm('Bạn chắc chắn muốn xóa bình luận này?')">
+                                        <input type="hidden" name="comment_id" value="<?php echo $comment['comment_id']; ?>">
+                                        <button type="submit" name="delete_comment" value="1" 
+                                            style="padding:4px 8px;background:#e74c3c;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">
+                                            🗑️ Xóa
+                                        </button>
+                                    </form>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                            <div style="color:#333;font-size:14px;line-height:1.6;">
+                                <?php echo nl2br(htmlspecialchars($comment['content'])); ?>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                    <p style="color:#999;text-align:center;padding:20px;">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+                    <?php endif; ?>
                 </div>
             </section>
-        </main>
+        </div>
 
         <!-- SIDEBAR -->
         <aside class="sidebar-column col-4">
             <div class="latest-news-block">
-                <header class="latest-news-tit fw-bold d-inline-block padd-t-10 mar-b-15">
+                <header class="latest-news-tit">
                     <h2 class="fw-bold text-uppercase color-green-custom">📌 TIN MỚI NHẤT</h2>
                 </header>
                 <div class="latest-news-list">
+                    <?php foreach($tinSidebar as $tin): ?>
                     <div class="sidebar-article">
-                        <h4 style="font-size: 11px; color: #888; text-transform: uppercase;">Bóng đá</h4>
-                        <p><a href="#" class="color-main hover-color-24h">HAGL chia điểm Hà Nội FC</a></p>
+                        <h4 style="font-size: 11px; color: #888; text-transform: uppercase;">
+                            <?php echo htmlspecialchars($tin['category_name']); ?>
+                        </h4>
+                        <p>
+                            <a href="article.php?id=<?php echo $tin['article_id']; ?>" class="color-main hover-color-24h">
+                                <?php echo htmlspecialchars($tin['title']); ?>
+                            </a>
+                        </p>
                     </div>
-                    <div class="sidebar-article">
-                        <h4 style="font-size: 11px; color: #888; text-transform: uppercase;">Tennis</h4>
-                        <p><a href="#" class="color-main hover-color-24h">Alcaraz vô địch Wimbledon</a></p>
-                    </div>
-                    <div class="sidebar-article">
-                        <h4 style="font-size: 11px; color: #888; text-transform: uppercase;">Đua xe</h4>
-                        <p><a href="#" class="color-main hover-color-24h">Verstappen về nhất Monaco GP</a></p>
-                    </div>
-                    <div class="sidebar-article">
-                        <h4 style="font-size: 11px; color: #888; text-transform: uppercase;">V-League</h4>
-                        <p><a href="#" class="color-main hover-color-24h">Lịch thi đấu Euro 2028</a></p>
-                    </div>
-                    <div class="sidebar-article">
-                        <h4 style="font-size: 11px; color: #888; text-transform: uppercase;">Kinh tế</h4>
-                        <p><a href="#" class="color-main hover-color-24h">VN-Index vượt mốc 1300 điểm</a></p>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
         </aside>
     </div>
+    </main>
 
     <!-- FOOTER -->
     <footer style="margin-top:40px;padding:20px 0;border-top:1px solid #eee;color:#666;font-size:13px">
