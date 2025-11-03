@@ -3,7 +3,7 @@ class dbadmin {
     private $host = "localhost";
     private $username = "root";
     private $password = "";
-    private $database = "project";
+    private $database = "webthethao";
     protected $conn;
     
     // Constructor - Tự động kết nối
