@@ -91,8 +91,8 @@ CREATE TABLE `comments` (
 
 -- Thêm user mẫu - tài khoản admin admin pass admin123 (MD5 mã hóa)
 
-INSERT INTO users (username, email, password, role, created_at) 
-VALUES ('admin', 'admin@webthethao.com', '0192023a7bbd73250516f069df18b500', 'admin', NOW());
+INSERT INTO users (username, email, display_name, password, role, created_at) 
+VALUES ('admin', 'admin@webthethao.com', 'Quản Trị Viên', '0192023a7bbd73250516f069df18b500', 'admin', NOW());
 
 INSERT INTO `categories` (`category_id`, `name`, `slug`, `parent_id`) VALUES
 (1, 'Thể thao', 'the-thao', NULL),
