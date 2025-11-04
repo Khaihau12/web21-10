@@ -178,7 +178,7 @@ $danhMuc = $db->layTatCaChuyenMuc();
                     <ul>
                         <li><a href="index.php"><i class="fa fa-home"></i> Trang Chủ</a></li>
                         <?php foreach($danhMuc as $dm) { ?>
-                        <li><a href="category.php?id=<?php echo $dm['category_id']; ?>"><?php echo $dm['name']; ?></a></li>
+                        <li><a href="category.php?slug=<?php echo $dm['slug']; ?>"><?php echo $dm['name']; ?></a></li>
                         <?php } ?>
                     </ul>
                 </nav>
