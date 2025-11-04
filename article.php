@@ -16,8 +16,8 @@ if (!$article) {
 }
 
 // Kiểm tra đăng nhập
-$isLoggedIn = $db->kiemTraDangNhap();
-$currentUser = $isLoggedIn ? $db->layUserHienTai() : null;
+$isLoggedIn = $db->isLoggedIn();
+$currentUser = $isLoggedIn ? $db->getCurrentUser() : null;
 
 // Xử lý thích bài viết
 if ($isLoggedIn && isset($_POST['like_toggle'])) {
