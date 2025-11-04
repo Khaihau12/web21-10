@@ -1,21 +1,16 @@
 <?php
-require_once "dbadmin.php";
+// Kiểm tra đăng nhập
+require_once 'check_login.php';
 
-$db = new dbadmin();
 $categories = $db->getList("categories",);
 ?>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>Danh Sách Category</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-<div class="container">
-    <h1>Danh Sách Chuyên Mục</h1>
-    
-    <a href="them_chuyen_muc.php" class="btn">+ Thêm chuyên mục mới</a>
+
+<div class="content-header">
+    <h2>📁 Danh Sách Chuyên Mục</h2>
+</div>
+
+<div class="content-body">
+    <a href="?page=add-category" class="btn btn-success">+ Thêm Chuyên Mục Mới</a>
     <br><br>
     
     <table>
@@ -34,9 +29,10 @@ $categories = $db->getList("categories",);
                     <td><?= $cat['name'] ?></td>
                     <td><?= $cat['slug'] ?></td>
                     <td>
-                        <form method="POST" action="delete_category.php" onsubmit="return confirm('Bạn có chắc muốn xóa loại tin này?');">
+                        <a href="?page=edit-category&id=<?= $cat['category_id'] ?>" class="btn btn-success">Sửa</a>
+                        <form method="POST" action="delete_category.php" onsubmit="return confirm('Bạn có chắc muốn xóa loại tin này?');" style="display:inline;">
                             <input type="hidden" name="category_id" value="<?= $cat['category_id'] ?>">
-                            <button type="submit">Xóa</button>
+                            <button type="submit" class="btn btn-danger">Xóa</button>
                         </form>
                     </td>
                 </tr>
@@ -45,11 +41,6 @@ $categories = $db->getList("categories",);
     </table>
     
     <?php if (isset($_GET['msg']) && $_GET['msg'] == "success"): ?>
-        <p class="success">Xóa loại tin thành công!</p>
+        <p style="color: green; margin-top: 15px;">✓ Xóa loại tin thành công!</p>
     <?php endif; ?>
-    
-    <hr>
-    <a href="index.php">← Quay lại trang chủ</a>
 </div>
-</body>
-</html>
