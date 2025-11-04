@@ -3,15 +3,15 @@ session_start();
 require_once 'dbuser.php';
 $db = new dbuser();
 
-// Lấy article_id từ URL
-if (isset($_GET['id'])) {
-    $article_id = (int)$_GET['id'];
+// Lấy slug từ URL
+if (isset($_GET['slug'])) {
+    $article_slug = $_GET['slug'];
 } else {
-    $article_id = 0;
+    $article_slug = '';
 }
 
-// Lấy chi tiết bài viết
-$article = $db->layChiTietBaiViet($article_id);
+// Lấy chi tiết bài viết theo slug
+$article = $db->layChiTietBaiVietTheoSlug($article_slug);
 
 // Nếu không tìm thấy bài viết, chuyển về trang chủ
 if (!$article) {
@@ -27,17 +27,21 @@ if ($isLoggedIn) {
     $currentUser = null;
 }
 
+// Lấy article_id từ bài viết (dùng cho các chức năng like, comment...)
+$article_id = $article['article_id'];
+$article_slug = $article['slug'];
+
 // Xử lý thích bài viết
 if ($isLoggedIn && isset($_POST['like_toggle'])) {
     $db->toggleThichBaiViet($currentUser['user_id'], $article_id);
-    header("Location: article.php?id=$article_id");
+    header("Location: article.php?slug=$article_slug");
     exit;
 }
 
 // Xử lý lưu bài viết
 if ($isLoggedIn && isset($_POST['save_toggle'])) {
     $db->toggleLuuBaiViet($currentUser['user_id'], $article_id);
-    header("Location: article.php?id=$article_id");
+    header("Location: article.php?slug=$article_slug");
     exit;
 }
 
@@ -46,7 +50,7 @@ if ($isLoggedIn && isset($_POST['add_comment'])) {
     $content = trim($_POST['comment_content']);
     if (!empty($content)) {
         $db->themBinhLuan($article_id, $currentUser['user_id'], $content);
-        header("Location: article.php?id=$article_id#comments");
+        header("Location: article.php?slug=$article_slug#comments");
         exit;
     }
 }
@@ -55,7 +59,7 @@ if ($isLoggedIn && isset($_POST['add_comment'])) {
 if ($isLoggedIn && isset($_POST['delete_comment'])) {
     $comment_id = (int)$_POST['comment_id'];
     $db->xoaBinhLuan($comment_id, $currentUser['user_id']);
-    header("Location: article.php?id=$article_id#comments");
+    header("Location: article.php?slug=$article_slug#comments");
     exit;
 }
 
@@ -65,7 +69,7 @@ if ($isLoggedIn && isset($_POST['edit_comment'])) {
     $content = trim($_POST['comment_content']);
     if (!empty($content)) {
         $db->suaBinhLuan($comment_id, $currentUser['user_id'], $content);
-        header("Location: article.php?id=$article_id#comments");
+        header("Location: article.php?slug=$article_slug#comments");
         exit;
     }
 }
@@ -245,7 +249,7 @@ $tinSidebar = $db->layBaiVietMoiNhat(5);
                     <ul>
                         <li><a href="index.php"><i class="fa fa-home"></i> Trang Chủ</a></li>
                         <?php foreach($danhMuc as $dm) { ?>
-                        <li><a href="category.php?id=<?php echo $dm['category_id']; ?>"><?php echo $dm['name']; ?></a></li>
+                        <li><a href="category.php?slug=<?php echo $dm['slug']; ?>"><?php echo $dm['name']; ?></a></li>
                         <?php } ?>
                     </ul>
                 </nav>
@@ -260,7 +264,7 @@ $tinSidebar = $db->layBaiVietMoiNhat(5);
             <!-- Breadcrumb -->
             <div class="breadcrumb">
                 <a href="index.php">Trang chủ</a> &raquo; 
-                <a href="category.php?id=<?php echo $article['category_id']; ?>"><?php echo $article['category_name']; ?></a>
+                <a href="category.php?slug=<?php echo $article['category_slug']; ?>"><?php echo $article['category_name']; ?></a>
             </div>
             
             <!-- Bài viết chi tiết -->
@@ -269,7 +273,7 @@ $tinSidebar = $db->layBaiVietMoiNhat(5);
                     <h1 class="article-title"><?php echo $article['title']; ?></h1>
                     <div class="article-meta-info d-flex justify-content-between align-items-center">
                         <span class="meta-left">
-                            Chuyên mục: <a href="category.php?id=<?php echo $article['category_id']; ?>" style="color:#3498db;"><?php echo $article['category_name']; ?></a>
+                            Chuyên mục: <a href="category.php?slug=<?php echo $article['category_slug']; ?>" style="color:#3498db;"><?php echo $article['category_name']; ?></a>
                             &nbsp;•&nbsp;
                             <span class="date-time"><?php echo date('d/m/Y H:i', strtotime($article['created_at'])); ?></span>
                             &nbsp;•&nbsp;
@@ -374,7 +378,7 @@ $tinSidebar = $db->layBaiVietMoiNhat(5);
                                 style="padding:8px 20px;background:#f39c12;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:500;">
                                 💾 Lưu thay đổi
                             </button>
-                            <a href="article.php?id=<?php echo $article_id; ?>#comments" 
+                            <a href="article.php?slug=<?php echo $article_slug; ?>#comments" 
                                 style="margin-left:10px;padding:8px 20px;background:#95a5a6;color:#fff;border:none;border-radius:6px;text-decoration:none;display:inline-block;">
                                 ❌ Hủy
                             </a>
@@ -431,7 +435,7 @@ $tinSidebar = $db->layBaiVietMoiNhat(5);
                                 </div>
                                 <?php if($isLoggedIn && $comment['user_id'] == $currentUser['user_id']) { ?>
                                 <div>
-                                    <a href="article.php?id=<?php echo $article_id; ?>&edit=<?php echo $comment['comment_id']; ?>#comments" 
+                                    <a href="article.php?slug=<?php echo $article_slug; ?>&edit=<?php echo $comment['comment_id']; ?>#comments" 
                                         style="padding:4px 8px;background:#f39c12;color:#fff;border:none;border-radius:4px;text-decoration:none;font-size:12px;margin-right:5px;">
                                         ✏️ Sửa
                                     </a>
@@ -470,7 +474,7 @@ $tinSidebar = $db->layBaiVietMoiNhat(5);
                             <?php echo $tin['category_name']; ?>
                         </h4>
                         <p>
-                            <a href="article.php?id=<?php echo $tin['article_id']; ?>" class="color-main hover-color-24h">
+                            <a href="article.php?slug=<?php echo $tin['slug']; ?>" class="color-main hover-color-24h">
                                 <?php echo $tin['title']; ?>
                             </a>
                         </p>
