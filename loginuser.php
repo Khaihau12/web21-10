@@ -9,8 +9,17 @@ $message_type = '';
 
 // Xử lý đăng nhập
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
-    $password = trim($_POST['password'] ?? '');
+    if (isset($_POST['username'])) {
+        $username = trim($_POST['username']);
+    } else {
+        $username = '';
+    }
+    
+    if (isset($_POST['password'])) {
+        $password = trim($_POST['password']);
+    } else {
+        $password = '';
+    }
     
     if (empty($username) || empty($password)) {
         $message = 'Vui lòng nhập đầy đủ thông tin!';
@@ -168,9 +177,9 @@ $danhMuc = $db->layTatCaChuyenMuc();
                 <nav class="main-navigation">
                     <ul>
                         <li><a href="index.php"><i class="fa fa-home"></i> Trang Chủ</a></li>
-                        <?php foreach($danhMuc as $dm): ?>
-                        <li><a href="category.php?id=<?php echo $dm['category_id']; ?>"><?php echo htmlspecialchars($dm['name']); ?></a></li>
-                        <?php endforeach; ?>
+                        <?php foreach($danhMuc as $dm) { ?>
+                        <li><a href="category.php?id=<?php echo $dm['category_id']; ?>"><?php echo $dm['name']; ?></a></li>
+                        <?php } ?>
                     </ul>
                 </nav>
             </div>
@@ -183,17 +192,17 @@ $danhMuc = $db->layTatCaChuyenMuc();
             <div class="login-container">
                 <h2>🔐 Đăng nhập</h2>
                 
-                <?php if ($message): ?>
+                <?php if ($message) { ?>
                 <div class="message <?php echo $message_type; ?>">
-                    <?php echo htmlspecialchars($message); ?>
+                    <?php echo $message; ?>
                 </div>
-                <?php endif; ?>
+                <?php } ?>
                 
                 <form method="POST" action="">
                     <div class="form-group">
                         <label for="username">Tên đăng nhập</label>
                         <input type="text" id="username" name="username" placeholder="Nhập tên đăng nhập" 
-                               value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>" required autofocus>
+                               value="<?php if(isset($_POST['username'])) { echo $_POST['username']; } ?>" required autofocus>
                     </div>
                     
                     <div class="form-group">
