@@ -1,5 +1,6 @@
 <?php
-require_once "dbadmin.php";
+// Kiểm tra đăng nhập
+require_once 'check_login.php';
 
 if ($_SERVER['REQUEST_METHOD'] === "POST") {
     $category_id = isset($_POST['category_id']) ? intval($_POST['category_id']) : 0;
