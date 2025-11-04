@@ -4,6 +4,9 @@
  * File: chinhsua.php
  */
 
+// Kiểm tra đăng nhập
+require_once 'check_login.php';
+
 require_once 'dbadmin.php';
 
 // Khởi tạo database
