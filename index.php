@@ -9,6 +9,7 @@ $tinMoiNhat = $db->layBaiVietMoiNhat(10); // Lấy 10 tin mới nhất
 $tinTheThao = $db->layBaiVietTheoCategory('the-thao', 4); // Lấy 4 tin thể thao
 $tinSidebar = $db->layBaiVietMoiNhat(5); // Lấy 5 tin cho sidebar
 $danhMuc = $db->layTatCaChuyenMuc(); // Lấy tất cả danh mục
+$categoryGoc = $db->layCategoryGoc(4); // Lấy 4 category cha để hiển thị menu
 
 // Kiểm tra đăng nhập
 $isLoggedIn = $db->isLoggedIn();
@@ -63,7 +64,7 @@ if ($isLoggedIn) {
                     <ul>
                         <li><a href="index.php" class="active"><i class="fa fa-home"></i> Trang Chủ</a></li>
                         <?php foreach($danhMuc as $dm) { ?>
-                        <li><a href="category.php?id=<?php echo $dm['category_id']; ?>"><?php echo $dm['name']; ?></a></li>
+                        <li><a href="category.php?slug=<?php echo $dm['slug']; ?>"><?php echo $dm['name']; ?></a></li>
                         <?php } ?>
                     </ul>
                 </nav>
@@ -83,11 +84,11 @@ if ($isLoggedIn) {
                     <!-- Bài nổi bật lớn -->
                     <?php if($tinNoiBat) { ?>
                     <div class="hightl-24h-big hightl-24h-big--col">
-                        <a href="article.php?id=<?php echo $tinNoiBat['article_id']; ?>">
+                        <a href="article.php?slug=<?php echo $tinNoiBat['slug']; ?>">
                             <img src="<?php echo $tinNoiBat['image_url']; ?>" alt="<?php echo $tinNoiBat['title']; ?>" class="img-fluid hightl-img-big">
                         </a>
                         <h2 class="hightl-title-big">
-                            <a href="article.php?id=<?php echo $tinNoiBat['article_id']; ?>" class="fw-bold color-main hover-color-24h">
+                            <a href="article.php?slug=<?php echo $tinNoiBat['slug']; ?>" class="fw-bold color-main hover-color-24h">
                                 <?php echo $tinNoiBat['title']; ?>
                             </a>
                         </h2>
@@ -103,12 +104,12 @@ if ($isLoggedIn) {
                         ?>
                         <article class="hightl-24h-items" style="margin-bottom: 15px;">
                             <span class="hightl-24h-items-cate d-block mar-b-5">
-                                <a href="category.php?id=<?php echo $tin['category_id']; ?>" class="color-24h">
+                                <a href="category.php?slug=<?php echo $tin['category_slug']; ?>" class="color-24h">
                                     <?php echo $tin['category_name']; ?>
                                 </a>
                             </span>
                             <h3>
-                                <a href="article.php?id=<?php echo $tin['article_id']; ?>" class="d-block fw-medium color-main hover-color-24h">
+                                <a href="article.php?slug=<?php echo $tin['slug']; ?>" class="d-block fw-medium color-main hover-color-24h">
                                     <?php echo $tin['title']; ?>
                                 </a>
                             </h3>
@@ -117,25 +118,32 @@ if ($isLoggedIn) {
                     </div>
                 </section>
 
-                <!-- SECTION: Category showcase - Thể thao -->
+                <!-- SECTION: Category showcase - Thể thao (Động từ database) -->
                 <section class="category-showcase-block">
                     <header class="category-showcase-header">
-                        <h2 class="category-title"><a href="category.php">THỂ THAO</a></h2>
+                        <h2 class="category-title">
+                            <?php if(isset($categoryGoc[0])) { ?>
+                                <a href="category.php?slug=<?php echo $categoryGoc[0]['slug']; ?>"><?php echo strtoupper($categoryGoc[0]['name']); ?></a>
+                            <?php } ?>
+                        </h2>
                         <nav class="sub-category-nav">
-                            <a href="category.php?slug=bong-da">Bóng đá</a>
-                            <a href="category.php?slug=tennis">Tennis</a>
-                            <a href="category.php?slug=bong-ro">Bóng rổ</a>
+                            <?php 
+                            // Hiển thị 3 category còn lại làm menu con
+                            for($i = 1; $i < count($categoryGoc); $i++) { 
+                            ?>
+                                <a href="category.php?slug=<?php echo $categoryGoc[$i]['slug']; ?>"><?php echo $categoryGoc[$i]['name']; ?></a>
+                            <?php } ?>
                         </nav>
                     </header>
                     <div class="category-showcase-content">
                         <!-- Bài chính -->
                         <?php if(isset($tinTheThao[0])) { ?>
                         <article class="showcase-top-story">
-                            <a href="article.php?id=<?php echo $tinTheThao[0]['article_id']; ?>" class="story-image">
+                            <a href="article.php?slug=<?php echo $tinTheThao[0]['slug']; ?>" class="story-image">
                                 <img src="<?php echo $tinTheThao[0]['image_url']; ?>" alt="<?php echo $tinTheThao[0]['title']; ?>">
                             </a>
                             <div class="story-content">
-                                <h3><a href="article.php?id=<?php echo $tinTheThao[0]['article_id']; ?>"><?php echo $tinTheThao[0]['title']; ?></a></h3>
+                                <h3><a href="article.php?slug=<?php echo $tinTheThao[0]['slug']; ?>"><?php echo $tinTheThao[0]['title']; ?></a></h3>
                                 <p><?php echo substr($tinTheThao[0]['summary'], 0, 150); ?>...</p>
                             </div>
                         </article>
@@ -148,10 +156,10 @@ if ($isLoggedIn) {
                             foreach($tinNhoTheThao as $tin) { 
                             ?>
                             <article class="story-small">
-                                <a href="article.php?id=<?php echo $tin['article_id']; ?>" class="story-image">
+                                <a href="article.php?slug=<?php echo $tin['slug']; ?>" class="story-image">
                                     <img src="<?php echo $tin['image_url']; ?>" alt="<?php echo $tin['title']; ?>">
                                 </a>
-                                <h4><a href="article.php?id=<?php echo $tin['article_id']; ?>"><?php echo $tin['title']; ?></a></h4>
+                                <h4><a href="article.php?slug=<?php echo $tin['slug']; ?>"><?php echo $tin['title']; ?></a></h4>
                             </article>
                             <?php } ?>
                         </div>
@@ -177,7 +185,7 @@ if ($isLoggedIn) {
                                 <span>📁 <?php echo $tin['category_name']; ?></span>
                             </div>
                             <p><?php echo substr($tin['summary'], 0, 150); ?>...</p>
-                            <a href="article.php?id=<?php echo $tin['article_id']; ?>" class="read-more">Đọc tiếp →</a>
+                            <a href="article.php?slug=<?php echo $tin['slug']; ?>" class="read-more">Đọc tiếp →</a>
                         </div>
                     </div>
                     <?php } ?>
@@ -198,7 +206,7 @@ if ($isLoggedIn) {
                                 <?php echo $tin['category_name']; ?>
                             </h4>
                             <p>
-                                <a href="article.php?id=<?php echo $tin['article_id']; ?>" class="color-main hover-color-24h">
+                                <a href="article.php?slug=<?php echo $tin['slug']; ?>" class="color-main hover-color-24h">
                                     <?php echo $tin['title']; ?>
                                 </a>
                             </p>
