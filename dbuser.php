@@ -26,8 +26,8 @@ class dbuser {
         return $this->conn;
     }
     
-    // Lấy tất cả bài viết
-    public function layTatCaBaiViet($limit = 10) {
+    // Lấy bài viết mới nhất
+    public function layBaiVietMoiNhat($limit = 10) {
         $sql = "SELECT articles.article_id, articles.category_id, articles.title, articles.slug, 
                 articles.summary, articles.content, articles.image_url, articles.author_id, 
                 articles.is_featured, articles.created_at, categories.name as category_name 
