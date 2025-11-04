@@ -1,7 +1,7 @@
 <?php
-require_once "dbadmin.php";
+// Kiểm tra đăng nhập
+require_once 'check_login.php';
 
-$db = new dbadmin();
 $message = "";
 
 // Xử lý khi submit form
@@ -21,18 +21,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 // Lấy danh sách chuyên mục để chọn parent
 $categories = $db->getList("categories");
 ?>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>Thêm Chuyên Mục</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-<div class="container">
-    <h1>Thêm Chuyên Mục Mới</h1>
-    
-    <?php if ($message): ?>
+
+<div class="content-header">
+    <h2>➕ Thêm Chuyên Mục Mới</h2>
+</div>
+
+<div class="content-body">    <?php if ($message): ?>
         <p class="<?= strpos($message, 'thành công') !== false ? 'success' : 'error' ?>">
             <?= $message ?>
         </p>
@@ -53,11 +47,7 @@ $categories = $db->getList("categories");
             <?php endforeach; ?>
         </select>
         
-        <button type="submit">Thêm chuyên mục</button>
+        <button type="submit" class="btn btn-success">✓ Thêm Chuyên Mục</button>
+        <a href="?page=categories" class="btn">← Quay lại danh sách</a>
     </form>
-    
-    <hr>
-    <a href="category_list.php">← Quay lại danh sách</a>
 </div>
-</body>
-</html>
