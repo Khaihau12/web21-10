@@ -19,8 +19,8 @@ if (!$category) {
 $tinTuc = $db->layBaiVietTheoCategoryId($category_id, 20);
 
 // Kiểm tra đăng nhập
-$isLoggedIn = $db->kiemTraDangNhap();
-$currentUser = $isLoggedIn ? $db->layUserHienTai() : null;
+$isLoggedIn = $db->isLoggedIn();
+$currentUser = $isLoggedIn ? $db->getCurrentUser() : null;
 
 // Lấy danh mục cho menu
 $danhMuc = $db->layTatCaChuyenMuc();
