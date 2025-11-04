@@ -9,7 +9,18 @@ $db = new dbadmin();
 $currentUser = $db->getCurrentUser();
 
 // Lấy trang hiện tại từ URL (mặc định là dashboard)
-$page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
+if (isset($_GET['page'])) {
+    $page = $_GET['page'];
+} else {
+    $page = 'dashboard';
+}
+
+// Xử lý đăng xuất
+if (isset($_POST['logout'])) {
+    $db->logout();
+    header('Location: login.php');
+    exit;
+}
 
 // Lấy thống kê tổng quan
 $conn = $db->getConnection();
@@ -106,6 +117,25 @@ $baiVietMoiNhat = $conn->query("SELECT COUNT(*) as total FROM articles WHERE DAT
             color: white;
         }
         .admin-menu li a i {
+            margin-right: 8px;
+            width: 18px;
+            color: white;
+        }
+        .admin-menu li button {
+            display: block;
+            width: 100%;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 10px 15px;
+            text-align: left;
+            font-size: 14px;
+        }
+        .admin-menu li button:hover {
+            background-color: #2c3e50;
+        }
+        .admin-menu li button i {
             margin-right: 8px;
             width: 18px;
             color: white;
@@ -211,12 +241,19 @@ $baiVietMoiNhat = $conn->query("SELECT COUNT(*) as total FROM articles WHERE DAT
     <!-- HEADER -->
     <header class="admin-header">
         <h1>🏆 Quản Trị Web Thể Thao</h1>
-        <?php if ($currentUser): ?>
+        <?php if ($currentUser) { ?>
             <div class="user-info">
-                Chào <strong><?php echo $currentUser['role'] == 'admin' ? 'Admin' : 'Editor'; ?></strong> 
-                <?php echo htmlspecialchars($currentUser['display_name']); ?>
+                <?php
+                if ($currentUser['role'] == 'admin') {
+                    $roleText = 'Admin';
+                } else {
+                    $roleText = 'Editor';
+                }
+                ?>
+                Chào <strong><?php echo $roleText; ?></strong> 
+                <?php echo $currentUser['display_name']; ?>
             </div>
-        <?php endif; ?>
+        <?php } ?>
     </header>
 
     <!-- LAYOUT: SIDEBAR + MAIN -->
@@ -226,32 +263,74 @@ $baiVietMoiNhat = $conn->query("SELECT COUNT(*) as total FROM articles WHERE DAT
             <h3>� MENU CHÍNH</h3>
             <ul class="admin-menu">
                 <li>
-                    <a href="?page=dashboard" class="<?php echo ($page == 'dashboard') ? 'active' : ''; ?>">
+                    <?php
+                    if ($page == 'dashboard') {
+                        $activeClass = 'active';
+                    } else {
+                        $activeClass = '';
+                    }
+                    ?>
+                    <a href="?page=dashboard" class="<?php echo $activeClass; ?>">
                         <i class="fas fa-home"></i> Trang Chủ
                     </a>
                 </li>
                 <li>
-                    <a href="?page=articles" class="<?php echo ($page == 'articles') ? 'active' : ''; ?>">
+                    <?php
+                    if ($page == 'articles') {
+                        $activeClass = 'active';
+                    } else {
+                        $activeClass = '';
+                    }
+                    ?>
+                    <a href="?page=articles" class="<?php echo $activeClass; ?>">
                         <i class="fas fa-newspaper"></i> Danh Sách Bài Viết
                     </a>
                 </li>
                 <li>
-                    <a href="?page=add-article" class="<?php echo ($page == 'add-article') ? 'active' : ''; ?>">
+                    <?php
+                    if ($page == 'add-article') {
+                        $activeClass = 'active';
+                    } else {
+                        $activeClass = '';
+                    }
+                    ?>
+                    <a href="?page=add-article" class="<?php echo $activeClass; ?>">
                         <i class="fas fa-plus"></i> Thêm Bài Viết
                     </a>
                 </li>
                 <li>
-                    <a href="?page=categories" class="<?php echo ($page == 'categories') ? 'active' : ''; ?>">
+                    <?php
+                    if ($page == 'categories') {
+                        $activeClass = 'active';
+                    } else {
+                        $activeClass = '';
+                    }
+                    ?>
+                    <a href="?page=categories" class="<?php echo $activeClass; ?>">
                         <i class="fas fa-folder"></i> Danh Sách Chuyên Mục
                     </a>
                 </li>
                 <li>
-                    <a href="?page=add-category" class="<?php echo ($page == 'add-category') ? 'active' : ''; ?>">
+                    <?php
+                    if ($page == 'add-category') {
+                        $activeClass = 'active';
+                    } else {
+                        $activeClass = '';
+                    }
+                    ?>
+                    <a href="?page=add-category" class="<?php echo $activeClass; ?>">
                         <i class="fas fa-plus"></i> Thêm Chuyên Mục
                     </a>
                 </li>
                 <li>
-                    <a href="?page=demo-loai-tin" class="<?php echo ($page == 'demo-loai-tin') ? 'active' : ''; ?>">
+                    <?php
+                    if ($page == 'demo-loai-tin') {
+                        $activeClass = 'active';
+                    } else {
+                        $activeClass = '';
+                    }
+                    ?>
+                    <a href="?page=demo-loai-tin" class="<?php echo $activeClass; ?>">
                         <i class="fas fa-list"></i> Demo Danh Sách Loại Tin
                     </a>
                 </li>
@@ -265,9 +344,11 @@ $baiVietMoiNhat = $conn->query("SELECT COUNT(*) as total FROM articles WHERE DAT
                     </a>
                 </li>
                 <li>
-                    <a href="logout.php">
-                        <i class="fas fa-sign-out-alt"></i> Đăng Xuất
-                    </a>
+                    <form method="POST" style="margin: 0;">
+                        <button type="submit" name="logout">
+                            <i class="fas fa-sign-out-alt"></i> Đăng Xuất
+                        </button>
+                    </form>
                 </li>
             </ul>
         </aside>
@@ -304,12 +385,9 @@ $baiVietMoiNhat = $conn->query("SELECT COUNT(*) as total FROM articles WHERE DAT
                     </div>
                     
                     <div class="content-body">
-                        <h3>� Bài Viết Mới Nhất</h3>
+                        <h3>📰 Bài Viết Mới Nhất</h3>
                         <?php
-                        $recent = $conn->query("SELECT a.title, a.created_at, c.name as category_name 
-                                               FROM articles a 
-                                               LEFT JOIN categories c ON a.category_id = c.category_id 
-                                               ORDER BY a.created_at DESC LIMIT 5");
+                        $danhSachBaiMoi = $db->layBaiVietMoiNhat(5);
                         ?>
                         <table>
                             <thead>
@@ -320,13 +398,13 @@ $baiVietMoiNhat = $conn->query("SELECT COUNT(*) as total FROM articles WHERE DAT
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php while ($row = $recent->fetch_assoc()): ?>
+                                <?php foreach ($danhSachBaiMoi as $bai) { ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($row['title']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['category_name']); ?></td>
-                                    <td><?php echo date('d/m/Y H:i', strtotime($row['created_at'])); ?></td>
+                                    <td><?php echo $bai['title']; ?></td>
+                                    <td><?php echo $bai['category_name']; ?></td>
+                                    <td><?php echo date('d/m/Y H:i', strtotime($bai['created_at'])); ?></td>
                                 </tr>
-                                <?php endwhile; ?>
+                                <?php } ?>
                             </tbody>
                         </table>
                     </div>
@@ -341,6 +419,11 @@ $baiVietMoiNhat = $conn->query("SELECT COUNT(*) as total FROM articles WHERE DAT
                 case 'add-article':
                     // THÊM BÀI VIẾT
                     include 'admin_them_tin.php';
+                    break;
+
+                case 'edit-article':
+                    // SỬA BÀI VIẾT
+                    include 'chinhsua.php';
                     break;
 
                 case 'categories':
