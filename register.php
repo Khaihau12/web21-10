@@ -15,21 +15,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = trim($_POST['password'] ?? '');
     $confirm_password = trim($_POST['confirm_password'] ?? '');
     
-    // Validate dữ liệu
-    if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
-        $message = 'Vui lòng điền đầy đủ thông tin bắt buộc!';
-        $message_type = 'error';
-    } elseif ($password !== $confirm_password) {
+    // Validate đơn giản: Chỉ check mật khẩu nhập lại có khớp không
+    if ($password !== $confirm_password) {
         $message = 'Mật khẩu nhập lại không khớp!';
         $message_type = 'error';
-    } elseif (strlen($password) < 6) {
-        $message = 'Mật khẩu phải có ít nhất 6 ký tự!';
-        $message_type = 'error';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $message = 'Email không hợp lệ!';
-        $message_type = 'error';
     } else {
-        // Gọi function đăng ký
+        // Gọi function đăng ký (function sẽ tự validate các trường bắt buộc)
         $result = $db->dangKy($username, $password, $email, $display_name);
         
         if ($result['success']) {
