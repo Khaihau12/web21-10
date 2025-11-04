@@ -49,15 +49,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Nếu không có lỗi upload ảnh, tiếp tục thêm bài viết
     if ($message_type !== 'error') {
         // Lấy dữ liệu từ form
+        if (isset($_POST['category_id'])) {
+            $category_id = $_POST['category_id'];
+        } else {
+            $category_id = 0;
+        }
+        
+        if (isset($_POST['title'])) {
+            $title = trim($_POST['title']);
+        } else {
+            $title = '';
+        }
+        
+        if (isset($_POST['slug'])) {
+            $slug = trim($_POST['slug']);
+        } else {
+            $slug = '';
+        }
+        
+        if (isset($_POST['summary'])) {
+            $summary = trim($_POST['summary']);
+        } else {
+            $summary = '';
+        }
+        
+        if (isset($_POST['content'])) {
+            $content = trim($_POST['content']);
+        } else {
+            $content = '';
+        }
+        
+        if (!empty($_POST['author_id'])) {
+            $author_id = (int)$_POST['author_id'];
+        } else {
+            $author_id = null;
+        }
+        
+        if (isset($_POST['is_featured'])) {
+            $is_featured = 1;
+        } else {
+            $is_featured = 0;
+        }
+        
         $data = [
-            'category_id' => $_POST['category_id'] ?? 0,
-            'title' => trim($_POST['title'] ?? ''),
-            'slug' => trim($_POST['slug'] ?? ''),
-            'summary' => trim($_POST['summary'] ?? ''),
-            'content' => trim($_POST['content'] ?? ''),
+            'category_id' => $category_id,
+            'title' => $title,
+            'slug' => $slug,
+            'summary' => $summary,
+            'content' => $content,
             'image_url' => $image_url,
-            'author_id' => !empty($_POST['author_id']) ? (int)$_POST['author_id'] : null,
-            'is_featured' => isset($_POST['is_featured']) ? 1 : 0
+            'author_id' => $author_id,
+            'is_featured' => $is_featured
         ];
         
         // Kiểm tra dữ liệu
@@ -93,11 +135,11 @@ $categories = $db->layDanhSachChuyenMuc();
     <h2>➕ Thêm Bài Viết Mới</h2>
 </div>
 
-<div class="content-body">    <?php if ($message): ?>
+<div class="content-body">    <?php if ($message) { ?>
         <div class="<?php echo $message_type; ?>">
             <?php echo $message; ?>
         </div>
-    <?php endif; ?>
+    <?php } ?>
     
     <form method="POST" action="" enctype="multipart/form-data">
         
@@ -105,34 +147,40 @@ $categories = $db->layDanhSachChuyenMuc();
         <label>Chuyên mục <span style="color:red;">*</span></label>
         <select name="category_id" required>
             <option value="">-- Chọn chuyên mục --</option>
-            <?php foreach ($categories as $cat): ?>
-                <option value="<?php echo $cat['category_id']; ?>" 
-                        <?php echo (isset($_POST['category_id']) && $_POST['category_id'] == $cat['category_id']) ? 'selected' : ''; ?>>
-                    <?php echo htmlspecialchars($cat['name']); ?>
+            <?php foreach ($categories as $cat) { ?>
+                <?php
+                if (isset($_POST['category_id']) && $_POST['category_id'] == $cat['category_id']) {
+                    $selected = 'selected';
+                } else {
+                    $selected = '';
+                }
+                ?>
+                <option value="<?php echo $cat['category_id']; ?>" <?php echo $selected; ?>>
+                    <?php echo $cat['name']; ?>
                 </option>
-            <?php endforeach; ?>
+            <?php } ?>
         </select>
         
         <!-- Tiêu đề -->
         <label>Tiêu đề <span style="color:red;">*</span></label>
         <input type="text" name="title" placeholder="Nhập tiêu đề bài viết..." 
-               value="<?php echo htmlspecialchars($_POST['title'] ?? ''); ?>" required>
+               value="<?php if(isset($_POST['title'])) { echo $_POST['title']; } ?>" required>
         
         <!-- Slug -->
         <label>Slug (URL thân thiện)</label>
         <input type="text" name="slug" placeholder="vi-du: bai-viet-mau-so-1"
-               value="<?php echo htmlspecialchars($_POST['slug'] ?? ''); ?>">
+               value="<?php if(isset($_POST['slug'])) { echo $_POST['slug']; } ?>">
         <p style="font-size:12px; color:#999;">Để trống để tự động tạo từ tiêu đề</p>
         
         <!-- Tóm tắt -->
         <label>Tóm tắt</label>
         <textarea name="summary" rows="3" 
-                  placeholder="Nhập tóm tắt ngắn gọn về bài viết..."><?php echo htmlspecialchars($_POST['summary'] ?? ''); ?></textarea>
+                  placeholder="Nhập tóm tắt ngắn gọn về bài viết..."><?php if(isset($_POST['summary'])) { echo $_POST['summary']; } ?></textarea>
         
         <!-- Nội dung -->
         <label>Nội dung chi tiết</label>
         <textarea name="content" rows="8"
-                  placeholder="Nhập nội dung đầy đủ của bài viết..."><?php echo htmlspecialchars($_POST['content'] ?? ''); ?></textarea>
+                  placeholder="Nhập nội dung đầy đủ của bài viết..."><?php if(isset($_POST['content'])) { echo $_POST['content']; } ?></textarea>
         
         <!-- Upload ảnh -->
         <label>Ảnh đại diện</label>
@@ -141,8 +189,14 @@ $categories = $db->layDanhSachChuyenMuc();
         
         <!-- Tin nổi bật -->
         <label>
-            <input type="checkbox" id="is_featured" name="is_featured" value="1"
-                   <?php echo (isset($_POST['is_featured'])) ? 'checked' : ''; ?>>
+            <?php
+            if (isset($_POST['is_featured'])) {
+                $checked = 'checked';
+            } else {
+                $checked = '';
+            }
+            ?>
+            <input type="checkbox" id="is_featured" name="is_featured" value="1" <?php echo $checked; ?>>
             Đánh dấu là tin nổi bật
         </label>
         
