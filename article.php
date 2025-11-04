@@ -4,7 +4,11 @@ require_once 'dbuser.php';
 $db = new dbuser();
 
 // Lấy article_id từ URL
-$article_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if (isset($_GET['id'])) {
+    $article_id = (int)$_GET['id'];
+} else {
+    $article_id = 0;
+}
 
 // Lấy chi tiết bài viết
 $article = $db->layChiTietBaiViet($article_id);
@@ -17,7 +21,11 @@ if (!$article) {
 
 // Kiểm tra đăng nhập
 $isLoggedIn = $db->isLoggedIn();
-$currentUser = $isLoggedIn ? $db->getCurrentUser() : null;
+if ($isLoggedIn) {
+    $currentUser = $db->getCurrentUser();
+} else {
+    $currentUser = null;
+}
 
 // Xử lý thích bài viết
 if ($isLoggedIn && isset($_POST['like_toggle'])) {
@@ -63,7 +71,12 @@ if ($isLoggedIn && isset($_POST['edit_comment'])) {
 }
 
 // Lấy comment_id nếu đang edit
-$editingCommentId = isset($_GET['edit']) ? (int)$_GET['edit'] : null;
+if (isset($_GET['edit'])) {
+    $editingCommentId = (int)$_GET['edit'];
+} else {
+    $editingCommentId = null;
+}
+
 $editingComment = null;
 if ($editingCommentId && $isLoggedIn) {
     $editingComment = $db->layMotBinhLuan($editingCommentId);
@@ -84,8 +97,17 @@ $luotLuu = $db->demLuotLuu($article_id);
 $luotXem = $db->demLuotXemBaiViet($article_id); // Đếm theo database
 
 // Kiểm tra user đã thích/lưu chưa
-$daThich = $isLoggedIn ? $db->daThichBaiViet($currentUser['user_id'], $article_id) : false;
-$daLuu = $isLoggedIn ? $db->daLuuBaiViet($currentUser['user_id'], $article_id) : false;
+if ($isLoggedIn) {
+    $daThich = $db->daThichBaiViet($currentUser['user_id'], $article_id);
+} else {
+    $daThich = false;
+}
+
+if ($isLoggedIn) {
+    $daLuu = $db->daLuuBaiViet($currentUser['user_id'], $article_id);
+} else {
+    $daLuu = false;
+}
 
 // Lấy bình luận
 $binhLuan = $db->layBinhLuan($article_id);
@@ -95,14 +117,14 @@ $soBinhLuan = $db->demBinhLuan($article_id);
 $danhMuc = $db->layTatCaChuyenMuc();
 
 // Lấy tin sidebar
-$tinSidebar = $db->layTatCaBaiViet(5);
+$tinSidebar = $db->layBaiVietMoiNhat(5);
 ?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($article['title']); ?> - Tin Tức 24H</title>
+    <title><?php echo $article['title']; ?> - Tin Tức 24H</title>
     <link rel="stylesheet" href="style.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
@@ -209,11 +231,11 @@ $tinSidebar = $db->layTatCaBaiViet(5);
                             <button type="submit"><i class="fa fa-search"></i></button>
                         </form>
                         <div class="user-links">
-                            <?php if($isLoggedIn): ?>
-                                <a href="indexuser.php"><i class="fa fa-user"></i> <?php echo htmlspecialchars($currentUser['display_name'] ?: $currentUser['username']); ?></a>
-                            <?php else: ?>
+                            <?php if($isLoggedIn) { ?>
+                                <a href="indexuser.php"><i class="fa fa-user"></i> <?php echo $currentUser['display_name']; ?></a>
+                            <?php } else { ?>
                                 <a href="loginuser.php"><i class="fa fa-user"></i> Đăng nhập</a>
-                            <?php endif; ?>
+                            <?php } ?>
                         </div>
                     </div>
                 </div>
@@ -222,9 +244,9 @@ $tinSidebar = $db->layTatCaBaiViet(5);
                 <nav class="main-navigation">
                     <ul>
                         <li><a href="index.php"><i class="fa fa-home"></i> Trang Chủ</a></li>
-                        <?php foreach($danhMuc as $dm): ?>
-                        <li><a href="category.php?id=<?php echo $dm['category_id']; ?>"><?php echo htmlspecialchars($dm['name']); ?></a></li>
-                        <?php endforeach; ?>
+                        <?php foreach($danhMuc as $dm) { ?>
+                        <li><a href="category.php?id=<?php echo $dm['category_id']; ?>"><?php echo $dm['name']; ?></a></li>
+                        <?php } ?>
                     </ul>
                 </nav>
             </div>
@@ -238,16 +260,16 @@ $tinSidebar = $db->layTatCaBaiViet(5);
             <!-- Breadcrumb -->
             <div class="breadcrumb">
                 <a href="index.php">Trang chủ</a> &raquo; 
-                <a href="category.php?id=<?php echo $article['category_id']; ?>"><?php echo htmlspecialchars($article['category_name']); ?></a>
+                <a href="category.php?id=<?php echo $article['category_id']; ?>"><?php echo $article['category_name']; ?></a>
             </div>
             
             <!-- Bài viết chi tiết -->
             <article class="full-article">
                 <div class="article-header">
-                    <h1 class="article-title"><?php echo htmlspecialchars($article['title']); ?></h1>
+                    <h1 class="article-title"><?php echo $article['title']; ?></h1>
                     <div class="article-meta-info d-flex justify-content-between align-items-center">
                         <span class="meta-left">
-                            Chuyên mục: <a href="category.php?id=<?php echo $article['category_id']; ?>" style="color:#3498db;"><?php echo htmlspecialchars($article['category_name']); ?></a>
+                            Chuyên mục: <a href="category.php?id=<?php echo $article['category_id']; ?>" style="color:#3498db;"><?php echo $article['category_name']; ?></a>
                             &nbsp;•&nbsp;
                             <span class="date-time"><?php echo date('d/m/Y H:i', strtotime($article['created_at'])); ?></span>
                             &nbsp;•&nbsp;
@@ -257,11 +279,11 @@ $tinSidebar = $db->layTatCaBaiViet(5);
                 </div>
             
                 <div class="article-content">
-                    <?php if(!empty($article['summary'])): ?>
+                    <?php if(!empty($article['summary'])) { ?>
                     <p style="font-weight: bold; color: #000; font-size: 19px; line-height: 1.5; margin-bottom: 20px;">
-                        <?php echo htmlspecialchars($article['summary']); ?>
+                        <?php echo $article['summary']; ?>
                     </p>
-                    <?php endif; ?>
+                    <?php } ?>
                     
                     <div class="article-body">
                         <?php echo $article['content']; ?>
@@ -271,18 +293,46 @@ $tinSidebar = $db->layTatCaBaiViet(5);
             
             <!-- Actions -->
             <section class="article-actions" style="margin-top:16px;border-top:1px solid #eee;padding-top:12px;">
-                <?php if($isLoggedIn): ?>
+                <?php if($isLoggedIn) { ?>
                     <form method="post" style="display:inline">
-                        <button type="submit" name="like_toggle" value="1" style="padding:6px 10px;border-radius:6px;border:1px solid <?php echo $daThich ? '#e74c3c' : '#ddd'; ?>;background:<?php echo $daThich ? '#ffe6e6' : '#fff'; ?>;cursor:pointer;color:<?php echo $daThich ? '#e74c3c' : '#333'; ?>">
-                            <?php echo $daThich ? '❤️' : '🤍'; ?> Thích (<?php echo number_format($luotThich); ?>)
+                        <?php
+                        if ($daThich) {
+                            $mau_nut_thich = '#e74c3c';
+                            $mau_nen_thich = '#ffe6e6';
+                            $mau_chu_thich = '#e74c3c';
+                            $bieu_tuong_thich = '❤️';
+                        } else {
+                            $mau_nut_thich = '#ddd';
+                            $mau_nen_thich = '#fff';
+                            $mau_chu_thich = '#333';
+                            $bieu_tuong_thich = '🤍';
+                        }
+                        ?>
+                        <button type="submit" name="like_toggle" value="1" style="padding:6px 10px;border-radius:6px;border:1px solid <?php echo $mau_nut_thich; ?>;background:<?php echo $mau_nen_thich; ?>;cursor:pointer;color:<?php echo $mau_chu_thich; ?>">
+                            <?php echo $bieu_tuong_thich; ?> Thích (<?php echo number_format($luotThich); ?>)
                         </button>
                     </form>
                     <form method="post" style="display:inline;margin-left:8px;">
-                        <button type="submit" name="save_toggle" value="1" style="padding:6px 10px;border-radius:6px;border:1px solid <?php echo $daLuu ? '#3498db' : '#ddd'; ?>;background:<?php echo $daLuu ? '#e6f2ff' : '#fff'; ?>;cursor:pointer;color:<?php echo $daLuu ? '#3498db' : '#333'; ?>">
-                            <?php echo $daLuu ? '📌' : '🔖'; ?> <?php echo $daLuu ? 'Đã lưu' : 'Lưu đọc sau'; ?> (<?php echo number_format($luotLuu); ?>)
+                        <?php
+                        if ($daLuu) {
+                            $mau_nut_luu = '#3498db';
+                            $mau_nen_luu = '#e6f2ff';
+                            $mau_chu_luu = '#3498db';
+                            $bieu_tuong_luu = '📌';
+                            $chu_luu = 'Đã lưu';
+                        } else {
+                            $mau_nut_luu = '#ddd';
+                            $mau_nen_luu = '#fff';
+                            $mau_chu_luu = '#333';
+                            $bieu_tuong_luu = '🔖';
+                            $chu_luu = 'Lưu đọc sau';
+                        }
+                        ?>
+                        <button type="submit" name="save_toggle" value="1" style="padding:6px 10px;border-radius:6px;border:1px solid <?php echo $mau_nut_luu; ?>;background:<?php echo $mau_nen_luu; ?>;cursor:pointer;color:<?php echo $mau_chu_luu; ?>">
+                            <?php echo $bieu_tuong_luu; ?> <?php echo $chu_luu; ?> (<?php echo number_format($luotLuu); ?>)
                         </button>
                     </form>
-                <?php else: ?>
+                <?php } else { ?>
                     <a href="loginuser.php" style="padding:6px 10px;border-radius:6px;border:1px solid #ddd;background:#fff;text-decoration:none;color:#333;display:inline-block">
                         🤍 Thích (<?php echo number_format($luotThich); ?>)
                     </a>
@@ -290,7 +340,7 @@ $tinSidebar = $db->layTatCaBaiViet(5);
                         🔖 Lưu đọc sau (<?php echo number_format($luotLuu); ?>)
                     </a>
                     <span style="color:#999;font-size:12px;margin-left:8px;">• <a href="loginuser.php">Đăng nhập</a> để thích và lưu bài viết</span>
-                <?php endif; ?>
+                <?php } ?>
             </section>
 
             <!-- BÌNH LUẬN -->
@@ -300,18 +350,25 @@ $tinSidebar = $db->layTatCaBaiViet(5);
                 </h3>
 
                 <!-- Form thêm/sửa bình luận -->
-                <?php if($isLoggedIn): ?>
+                <?php if($isLoggedIn) { ?>
                 <div class="comment-form" style="margin-bottom:25px;padding:15px;background:#f8f9fa;border-radius:8px;">
-                    <?php if($editingComment): ?>
+                    <?php if($editingComment) { ?>
                     <!-- Form sửa bình luận -->
                     <form method="post" action="">
                         <div style="margin-bottom:10px;">
-                            <strong><?php echo htmlspecialchars($currentUser['display_name'] ?: $currentUser['username']); ?></strong>
+                            <?php 
+                            if ($currentUser['display_name']) {
+                                $ten_user = $currentUser['display_name'];
+                            } else {
+                                $ten_user = $currentUser['username'];
+                            }
+                            ?>
+                            <strong><?php echo $ten_user; ?></strong>
                             <span style="color:#f39c12;margin-left:10px;">✏️ Đang chỉnh sửa bình luận</span>
                         </div>
                         <input type="hidden" name="comment_id" value="<?php echo $editingComment['comment_id']; ?>">
                         <textarea name="comment_content" rows="3" placeholder="Viết bình luận..." 
-                            style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;resize:vertical;" required><?php echo htmlspecialchars($editingComment['content']); ?></textarea>
+                            style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;resize:vertical;" required><?php echo $editingComment['content']; ?></textarea>
                         <div style="margin-top:10px;">
                             <button type="submit" name="edit_comment" value="1" 
                                 style="padding:8px 20px;background:#f39c12;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:500;">
@@ -321,13 +378,20 @@ $tinSidebar = $db->layTatCaBaiViet(5);
                                 style="margin-left:10px;padding:8px 20px;background:#95a5a6;color:#fff;border:none;border-radius:6px;text-decoration:none;display:inline-block;">
                                 ❌ Hủy
                             </a>
-                        </div>
+                        </button>
                     </form>
-                    <?php else: ?>
+                    <?php } else { ?>
                     <!-- Form thêm bình luận mới -->
                     <form method="post" action="">
                         <div style="margin-bottom:10px;">
-                            <strong><?php echo htmlspecialchars($currentUser['display_name'] ?: $currentUser['username']); ?></strong>
+                            <?php 
+                            if ($currentUser['display_name']) {
+                                $ten_user = $currentUser['display_name'];
+                            } else {
+                                $ten_user = $currentUser['username'];
+                            }
+                            ?>
+                            <strong><?php echo $ten_user; ?></strong>
                         </div>
                         <textarea name="comment_content" rows="3" placeholder="Viết bình luận..." 
                             style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;resize:vertical;" required></textarea>
@@ -336,29 +400,36 @@ $tinSidebar = $db->layTatCaBaiViet(5);
                             Gửi bình luận
                         </button>
                     </form>
-                    <?php endif; ?>
+                    <?php } ?>
                 </div>
-                <?php else: ?>
+                <?php } else { ?>
                 <div style="margin-bottom:20px;padding:15px;background:#fff3cd;border:1px solid #ffc107;border-radius:6px;">
                     <a href="loginuser.php" style="color:#856404;font-weight:500;">👤 Đăng nhập</a> để tham gia bình luận
                 </div>
-                <?php endif; ?>
+                <?php } ?>
 
                 <!-- Danh sách bình luận -->
                 <div class="comment-list">
-                    <?php if(count($binhLuan) > 0): ?>
-                        <?php foreach($binhLuan as $comment): ?>
+                    <?php if(count($binhLuan) > 0) { ?>
+                        <?php foreach($binhLuan as $comment) { ?>
                         <div class="comment-item" style="padding:15px;margin-bottom:15px;background:#fff;border:1px solid #e3e3e3;border-radius:8px;">
                             <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
                                 <div>
+                                    <?php 
+                                    if ($comment['display_name']) {
+                                        $ten_nguoi_comment = $comment['display_name'];
+                                    } else {
+                                        $ten_nguoi_comment = $comment['username'];
+                                    }
+                                    ?>
                                     <strong style="color:#2c3e50;font-size:14px;">
-                                        <?php echo htmlspecialchars($comment['display_name'] ?: $comment['username']); ?>
+                                        <?php echo $ten_nguoi_comment; ?>
                                     </strong>
                                     <span style="color:#999;font-size:12px;margin-left:8px;">
                                         <?php echo date('d/m/Y H:i', strtotime($comment['created_at'])); ?>
                                     </span>
                                 </div>
-                                <?php if($isLoggedIn && $comment['user_id'] == $currentUser['user_id']): ?>
+                                <?php if($isLoggedIn && $comment['user_id'] == $currentUser['user_id']) { ?>
                                 <div>
                                     <a href="article.php?id=<?php echo $article_id; ?>&edit=<?php echo $comment['comment_id']; ?>#comments" 
                                         style="padding:4px 8px;background:#f39c12;color:#fff;border:none;border-radius:4px;text-decoration:none;font-size:12px;margin-right:5px;">
@@ -372,16 +443,16 @@ $tinSidebar = $db->layTatCaBaiViet(5);
                                         </button>
                                     </form>
                                 </div>
-                                <?php endif; ?>
+                                <?php } ?>
                             </div>
                             <div style="color:#333;font-size:14px;line-height:1.6;">
-                                <?php echo nl2br(htmlspecialchars($comment['content'])); ?>
+                                <?php echo nl2br($comment['content']); ?>
                             </div>
                         </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
+                        <?php } ?>
+                    <?php } else { ?>
                     <p style="color:#999;text-align:center;padding:20px;">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
-                    <?php endif; ?>
+                    <?php } ?>
                 </div>
             </section>
         </div>
@@ -393,18 +464,18 @@ $tinSidebar = $db->layTatCaBaiViet(5);
                     <h2 class="fw-bold text-uppercase color-green-custom">📌 TIN MỚI NHẤT</h2>
                 </header>
                 <div class="latest-news-list">
-                    <?php foreach($tinSidebar as $tin): ?>
+                    <?php foreach($tinSidebar as $tin) { ?>
                     <div class="sidebar-article">
                         <h4 style="font-size: 11px; color: #888; text-transform: uppercase;">
-                            <?php echo htmlspecialchars($tin['category_name']); ?>
+                            <?php echo $tin['category_name']; ?>
                         </h4>
                         <p>
                             <a href="article.php?id=<?php echo $tin['article_id']; ?>" class="color-main hover-color-24h">
-                                <?php echo htmlspecialchars($tin['title']); ?>
+                                <?php echo $tin['title']; ?>
                             </a>
                         </p>
                     </div>
-                    <?php endforeach; ?>
+                    <?php } ?>
                 </div>
             </div>
         </aside>
