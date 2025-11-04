@@ -4,6 +4,9 @@
  * File: admin_them_tin.php
  */
 
+// Kiểm tra đăng nhập
+require_once 'check_login.php';
+
 require_once 'dbadmin.php';
 
 // Khởi tạo database
@@ -85,20 +88,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Lấy danh sách chuyên mục
 $categories = $db->layDanhSachChuyenMuc();
 ?>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thêm Tin Tức Mới</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-<div class="container">
-    <h1>Thêm Tin Tức Mới</h1>
-    <p><i>Thêm bài viết mới vào hệ thống</i></p>
-    
-    <?php if ($message): ?>
+
+<div class="content-header">
+    <h2>➕ Thêm Bài Viết Mới</h2>
+</div>
+
+<div class="content-body">    <?php if ($message): ?>
         <div class="<?php echo $message_type; ?>">
             <?php echo $message; ?>
         </div>
@@ -152,12 +147,7 @@ $categories = $db->layDanhSachChuyenMuc();
         </label>
         
         <!-- Nút submit -->
-        <button type="submit">Thêm Bài Viết</button>
-        <button type="reset">Làm mới</button>
+        <button type="submit" class="btn btn-success">✓ Thêm Bài Viết</button>
+        <button type="reset" class="btn">↻ Làm mới</button>
     </form>
-    
-    <hr>
-    <a href="index.php">← Quay lại trang chủ</a>
 </div>
-</body>
-</html>
