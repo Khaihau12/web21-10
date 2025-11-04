@@ -1,4 +1,5 @@
 <?php
+session_start(); // Phải có session_start() để lưu thông tin đăng nhập
 require 'dbadmin.php';
 
 $dbAdmin = new dbadmin();
