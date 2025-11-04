@@ -9,11 +9,35 @@ $message_type = '';
 
 // Xử lý đăng ký
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $display_name = trim($_POST['display_name'] ?? '');
-    $password = trim($_POST['password'] ?? '');
-    $confirm_password = trim($_POST['confirm_password'] ?? '');
+    if (isset($_POST['username'])) {
+        $username = trim($_POST['username']);
+    } else {
+        $username = '';
+    }
+    
+    if (isset($_POST['email'])) {
+        $email = trim($_POST['email']);
+    } else {
+        $email = '';
+    }
+    
+    if (isset($_POST['display_name'])) {
+        $display_name = trim($_POST['display_name']);
+    } else {
+        $display_name = '';
+    }
+    
+    if (isset($_POST['password'])) {
+        $password = trim($_POST['password']);
+    } else {
+        $password = '';
+    }
+    
+    if (isset($_POST['confirm_password'])) {
+        $confirm_password = trim($_POST['confirm_password']);
+    } else {
+        $confirm_password = '';
+    }
     
     // Validate đơn giản: Chỉ check mật khẩu nhập lại có khớp không
     if ($password !== $confirm_password) {
@@ -170,9 +194,9 @@ $danhMuc = $db->layTatCaChuyenMuc();
                 <nav class="main-navigation">
                     <ul>
                         <li><a href="index.php"><i class="fa fa-home"></i> Trang Chủ</a></li>
-                        <?php foreach($danhMuc as $dm): ?>
-                        <li><a href="category.php?id=<?php echo $dm['category_id']; ?>"><?php echo htmlspecialchars($dm['name']); ?></a></li>
-                        <?php endforeach; ?>
+                        <?php foreach($danhMuc as $dm) { ?>
+                        <li><a href="category.php?id=<?php echo $dm['category_id']; ?>"><?php echo $dm['name']; ?></a></li>
+                        <?php } ?>
                     </ul>
                 </nav>
             </div>
@@ -185,32 +209,32 @@ $danhMuc = $db->layTatCaChuyenMuc();
             <div class="register-container">
                 <h2>📝 Đăng ký tài khoản</h2>
                 
-                <?php if ($message): ?>
+                <?php if ($message) { ?>
                     <div class="message <?php echo $message_type; ?>">
                         <?php echo $message; ?>
                     </div>
-                <?php endif; ?>
+                <?php } ?>
                 
                 <form method="POST" action="">
                     <div class="form-group">
                         <label for="username">Tên đăng nhập <span style="color:red;">*</span></label>
                         <input type="text" id="username" name="username" 
                                placeholder="Nhập tên đăng nhập (không dấu, không khoảng trắng)" 
-                               value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>" required>
+                               value="<?php if(isset($_POST['username'])) { echo $_POST['username']; } ?>" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="email">Email <span style="color:red;">*</span></label>
                         <input type="email" id="email" name="email" 
                                placeholder="Nhập email (vd: user@gmail.com)" 
-                               value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" required>
+                               value="<?php if(isset($_POST['email'])) { echo $_POST['email']; } ?>" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="display_name">Tên hiển thị</label>
                         <input type="text" id="display_name" name="display_name" 
                                placeholder="Nhập tên hiển thị (có thể để trống)" 
-                               value="<?php echo htmlspecialchars($_POST['display_name'] ?? ''); ?>">
+                               value="<?php if(isset($_POST['display_name'])) { echo $_POST['display_name']; } ?>">
                         <small style="color:#999;font-size:12px;">Nếu để trống, hệ thống sẽ dùng tên đăng nhập</small>
                     </div>
                     
