@@ -8,8 +8,17 @@ $err = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
+    if (isset($_POST['username'])) {
+        $username = trim($_POST['username']);
+    } else {
+        $username = '';
+    }
+    
+    if (isset($_POST['password'])) {
+        $password = $_POST['password'];
+    } else {
+        $password = '';
+    }
 
     $user = $dbAdmin->login($username, $password);
     if ($user) {
@@ -30,8 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 <div class="container">
 <h1>Đăng Nhập Hệ Thống</h1>
-<?php if ($err): ?><p class="error"><?=htmlspecialchars($err)?></p><?php endif; ?>
-<?php if ($success): ?><p class="success"><?=htmlspecialchars($success)?></p><?php endif; ?>
+<?php if ($err) { ?><p class="error"><?=$err?></p><?php } ?>
+<?php if ($success) { ?><p class="success"><?=$success?></p><?php } ?>
 <form method="post">
     <label>Username</label>
     <input type="text" name="username" required>
