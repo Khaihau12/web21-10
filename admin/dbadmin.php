@@ -98,6 +98,33 @@ class dbadmin {
     // =======================================================================
     
     /**
+     * Lấy danh sách bài viết mới nhất
+     * @param int $limit - Số lượng bài viết cần lấy (mặc định 10)
+     * @return array|bool - Mảng danh sách bài viết hoặc false nếu lỗi
+     */
+    public function layBaiVietMoiNhat($limit = 10) {
+        $sql = "SELECT a.article_id, a.title, a.created_at, c.name as category_name 
+                FROM articles a 
+                LEFT JOIN categories c ON a.category_id = c.category_id 
+                ORDER BY a.created_at DESC 
+                LIMIT $limit";
+        
+        $result = $this->conn->query($sql);
+        
+        if (!$result) {
+            return false;
+        }
+        
+        $danhSach = array();
+        
+        while ($row = $result->fetch_assoc()) {
+            $danhSach[] = $row;
+        }
+        
+        return $danhSach;
+    }
+    
+    /**
      * Hiển thị danh sách tất cả loại tin
      * @return array|bool - Mảng danh sách loại tin hoặc false nếu lỗi
      */
@@ -209,7 +236,11 @@ class dbadmin {
         $sql = "INSERT INTO categories (name, slug, parent_id) VALUES ('$name', '$slug', $parent_id_value)";
         $result = $this->conn->query($sql);
         
-        return $result ? true : false;
+        if ($result) {
+            return true;
+        } else {
+            return false;
+        }
     }
     
     /**
@@ -255,7 +286,11 @@ class dbadmin {
         $sql = "UPDATE categories SET name = '$name', slug = '$slug', parent_id = $parent_id_value WHERE category_id = $category_id";
         $result = $this->conn->query($sql);
         
-        return $result ? true : false;
+        if ($result) {
+            return true;
+        } else {
+            return false;
+        }
     }
     
     // =======================================================================
@@ -278,7 +313,12 @@ class dbadmin {
         }
         $sql = "DELETE FROM `$table` WHERE " . implode(" AND ", $where_clause);
         $result = $this->conn->query($sql);
-        return $result ? true : false;
+        
+        if ($result) {
+            return true;
+        } else {
+            return false;
+        }
     }
     
     // =======================================================================
@@ -293,9 +333,11 @@ class dbadmin {
         }
         
         // Generate slug if not provided
-        $slug = isset($data['slug']) && !empty($data['slug']) 
-            ? $this->createSlug($data['slug'])
-            : $this->createSlug($data['name']);
+        if (isset($data['slug']) && !empty($data['slug'])) {
+            $slug = $this->createSlug($data['slug']);
+        } else {
+            $slug = $this->createSlug($data['name']);
+        }
             
         // Check if new parent would create a cycle
         if (!empty($data['parent_id']) && !$this->isValidParent($category_id, $data['parent_id'])) {
@@ -303,7 +345,11 @@ class dbadmin {
         }
         
         // Chuẩn bị parent_id
-        $parent_id_value = empty($data['parent_id']) ? "NULL" : $data['parent_id'];
+        if (empty($data['parent_id'])) {
+            $parent_id_value = "NULL";
+        } else {
+            $parent_id_value = $data['parent_id'];
+        }
         
         // Update category
         $sql = "UPDATE categories SET name = '$data[name]', slug = '$slug', parent_id = $parent_id_value WHERE category_id = $category_id";
@@ -381,12 +427,43 @@ class dbadmin {
         // Chuẩn bị dữ liệu
         $category_id = (int)$data['category_id'];
         $title = $data['title'];
-        $slug = !empty($data['slug']) ? $data['slug'] : $this->taoSlug($title);
-        $summary = $data['summary'] ?? '';
-        $content = $data['content'] ?? '';
-        $image_url = $data['image_url'] ?? '';
-        $author_id = isset($data['author_id']) ? (int)$data['author_id'] : 0;
-        $is_featured = isset($data['is_featured']) ? (int)$data['is_featured'] : 0;
+        
+        // Tạo slug
+        if (!empty($data['slug'])) {
+            $slug = $data['slug'];
+        } else {
+            $slug = $this->taoSlug($title);
+        }
+        
+        if (isset($data['summary'])) {
+            $summary = $data['summary'];
+        } else {
+            $summary = '';
+        }
+        
+        if (isset($data['content'])) {
+            $content = $data['content'];
+        } else {
+            $content = '';
+        }
+        
+        if (isset($data['image_url'])) {
+            $image_url = $data['image_url'];
+        } else {
+            $image_url = '';
+        }
+        
+        if (isset($data['author_id'])) {
+            $author_id = (int)$data['author_id'];
+        } else {
+            $author_id = 0;
+        }
+        
+        if (isset($data['is_featured'])) {
+            $is_featured = (int)$data['is_featured'];
+        } else {
+            $is_featured = 0;
+        }
         
         // Thêm vào database
         $sql = "INSERT INTO articles (category_id, title, slug, summary, content, image_url, author_id, is_featured, created_at) 
@@ -489,7 +566,11 @@ class dbadmin {
         $sql = "DELETE FROM articles WHERE article_id = $article_id";
         $result = $this->conn->query($sql);
         
-        return $result ? true : false;
+        if ($result) {
+            return true;
+        } else {
+            return false;
+        }
     }
     
     // =======================================================================
