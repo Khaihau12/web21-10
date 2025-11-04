@@ -26,11 +26,18 @@ $categories = $db->getList("categories");
     <h2>➕ Thêm Chuyên Mục Mới</h2>
 </div>
 
-<div class="content-body">    <?php if ($message): ?>
-        <p class="<?= strpos($message, 'thành công') !== false ? 'success' : 'error' ?>">
+<div class="content-body">    <?php if ($message) { ?>
+        <?php
+        if (strpos($message, 'thành công') !== false) {
+            $messageClass = 'success';
+        } else {
+            $messageClass = 'error';
+        }
+        ?>
+        <p class="<?= $messageClass ?>">
             <?= $message ?>
         </p>
-    <?php endif; ?>
+    <?php } ?>
     
     <form method="POST" action="">
         <label>Tên chuyên mục:</label>
@@ -42,9 +49,9 @@ $categories = $db->getList("categories");
         <label>Chuyên mục cha (để trống nếu là chuyên mục gốc):</label>
         <select name="parent_id">
             <option value="">-- Không có --</option>
-            <?php foreach ($categories as $cat): ?>
+            <?php foreach ($categories as $cat) { ?>
                 <option value="<?= $cat['category_id'] ?>"><?= $cat['name'] ?></option>
-            <?php endforeach; ?>
+            <?php } ?>
         </select>
         
         <button type="submit" class="btn btn-success">✓ Thêm Chuyên Mục</button>
