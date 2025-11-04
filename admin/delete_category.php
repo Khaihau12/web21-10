@@ -13,8 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         $db = new dbadmin();
         $result = $db->delete('categories', ['category_id' => $category_id]);
         if ($result) {
-            // Quay về trang danh sách chuyên mục
-            header("Location: category_list.php?msg=success");
+            // Quay về trang danh sách chuyên mục với thông báo thành công
+            header("Location: index.php?page=categories&msg=deleted");
             exit;
         } else {
             echo "Xóa loại tin thất bại!";
