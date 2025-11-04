@@ -31,15 +31,25 @@ class dbadmin {
     // =======================================================================
     
     public function login($username, $password) {
+        // Mã hóa password bằng MD5
+        $password_md5 = md5($password);
+        
         // Lấy tất cả tài khoản từ database
         $sql = "SELECT * FROM users";
         $result = $this->conn->query($sql);
         
         // Duyệt qua từng tài khoản
         while ($row = $result->fetch_assoc()) {
-            // Nếu tìm thấy username và password khớp VÀ role phải là admin hoặc editor
-            if ($row['username'] == $username && $row['password'] == $password) {
+            // Nếu tìm thấy username và password mã hóa khớp VÀ role phải là admin hoặc editor
+            if ($row['username'] == $username && $row['password'] == $password_md5) {
                 if ($row['role'] == 'admin' || $row['role'] == 'editor') {
+                    // Lưu thông tin vào session
+                    $_SESSION['admin_logged_in'] = true;
+                    $_SESSION['admin_id'] = $row['user_id'];
+                    $_SESSION['admin_username'] = $row['username'];
+                    $_SESSION['admin_display_name'] = $row['display_name'];
+                    $_SESSION['admin_role'] = $row['role'];
+                    
                     return true; // Đăng nhập thành công
                 }
             }
@@ -48,18 +58,38 @@ class dbadmin {
         return false; // Không tìm thấy tài khoản khớp hoặc không phải admin/editor
     }
     
-    // Đăng xuất người dùng (đơn giản)
+    // Đăng xuất người dùng
     public function logout() {
+        // Xóa tất cả session của admin
+        unset($_SESSION['admin_logged_in']);
+        unset($_SESSION['admin_id']);
+        unset($_SESSION['admin_username']);
+        unset($_SESSION['admin_display_name']);
+        unset($_SESSION['admin_role']);
         return true;
     }
 
-    // Kiểm tra đã đăng nhập hay chưa (luôn trả về false vì không dùng session)
+    // Kiểm tra đã đăng nhập hay chưa (phải là admin hoặc editor)
     public function isLoggedIn() {
+        if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
+            // Kiểm tra thêm role phải là admin hoặc editor
+            if (isset($_SESSION['admin_role']) && ($_SESSION['admin_role'] == 'admin' || $_SESSION['admin_role'] == 'editor')) {
+                return true;
+            }
+        }
         return false;
     }
     
-    // Lấy thông tin user hiện tại (không dùng nữa)
+    // Lấy thông tin user hiện tại
     public function getCurrentUser() {
+        if ($this->isLoggedIn()) {
+            return [
+                'user_id' => $_SESSION['admin_id'],
+                'username' => $_SESSION['admin_username'],
+                'display_name' => $_SESSION['admin_display_name'],
+                'role' => $_SESSION['admin_role']
+            ];
+        }
         return null;
     }
     
@@ -100,28 +130,22 @@ class dbadmin {
         if ($parent_id === null) {
             // Lấy các loại tin gốc (không có parent)
             $sql = "SELECT category_id, name, slug, parent_id FROM categories WHERE parent_id IS NULL ORDER BY category_id ASC";
-            $stmt = $this->conn->prepare($sql);
         } else {
             // Lấy các loại tin con theo parent_id
-            $sql = "SELECT category_id, name, slug, parent_id FROM categories WHERE parent_id = ? ORDER BY category_id ASC";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bind_param("i", $parent_id);
+            $sql = "SELECT category_id, name, slug, parent_id FROM categories WHERE parent_id = $parent_id ORDER BY category_id ASC";
         }
         
-        if (!$stmt) {
+        $result = $this->conn->query($sql);
+        
+        if (!$result) {
             return false;
         }
-        
-        $stmt->execute();
-        $result = $stmt->get_result();
         
         $danhSach = array();
         
         while ($row = $result->fetch_assoc()) {
             $danhSach[] = $row;
         }
-        
-        $stmt->close();
         
         return $danhSach;
     }
@@ -132,25 +156,18 @@ class dbadmin {
      * @return array|bool - Mảng thông tin loại tin hoặc false nếu không tìm thấy
      */
     public function layThongTinLoaiTin($category_id) {
-        $sql = "SELECT category_id, name, slug, parent_id FROM categories WHERE category_id = ?";
+        $sql = "SELECT category_id, name, slug, parent_id FROM categories WHERE category_id = $category_id";
         
-        $stmt = $this->conn->prepare($sql);
+        $result = $this->conn->query($sql);
         
-        if (!$stmt) {
+        if (!$result) {
             return false;
         }
         
-        $stmt->bind_param("i", $category_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
         if ($result->num_rows > 0) {
-            $data = $result->fetch_assoc();
-            $stmt->close();
-            return $data;
+            return $result->fetch_assoc();
         }
         
-        $stmt->close();
         return false;
     }
     
@@ -185,17 +202,62 @@ class dbadmin {
         
         // Nếu parent_id rỗng thì set null
         if (empty($parent_id)) {
-            $parent_id = null;
+            $parent_id_value = "NULL";
+        } else {
+            $parent_id_value = $parent_id;
         }
         
         // Thêm vào database
-        $sql = "INSERT INTO categories (name, slug, parent_id) VALUES (?, ?, ?)";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("ssi", $name, $slug, $parent_id);
-        $success = $stmt->execute();
-        $stmt->close();
+        $sql = "INSERT INTO categories (name, slug, parent_id) VALUES ('$name', '$slug', $parent_id_value)";
+        $result = $this->conn->query($sql);
         
-        return $success;
+        return $result ? true : false;
+    }
+    
+    /**
+     * Lấy thông tin một chuyên mục theo ID
+     * @param int $category_id - ID chuyên mục
+     * @return array|bool - Mảng thông tin chuyên mục hoặc false nếu không tìm thấy
+     */
+    public function layChuyenMucTheoId($category_id) {
+        $sql = "SELECT * FROM categories WHERE category_id = $category_id";
+        $result = $this->conn->query($sql);
+        
+        if ($result && $result->num_rows > 0) {
+            return $result->fetch_assoc();
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Sửa thông tin chuyên mục
+     * @param int $category_id - ID chuyên mục cần sửa
+     * @param string $name - Tên chuyên mục mới
+     * @param string $slug - Slug mới
+     * @param int|null $parent_id - ID chuyên mục cha
+     * @return bool - Thành công hay thất bại
+     */
+    public function suaChuyenMuc($category_id, $name, $slug, $parent_id) {
+        // Nếu không có slug thì tạo từ name
+        if (empty($slug)) {
+            $slug = $this->createSlug($name);
+        } else {
+            $slug = $this->createSlug($slug);
+        }
+        
+        // Nếu parent_id rỗng thì set null
+        if (empty($parent_id)) {
+            $parent_id_value = "NULL";
+        } else {
+            $parent_id_value = $parent_id;
+        }
+        
+        // Cập nhật vào database
+        $sql = "UPDATE categories SET name = '$name', slug = '$slug', parent_id = $parent_id_value WHERE category_id = $category_id";
+        $result = $this->conn->query($sql);
+        
+        return $result ? true : false;
     }
     
     // =======================================================================
@@ -213,18 +275,12 @@ class dbadmin {
     
     public function delete($table, $where) {
         $where_clause = [];
-        $vals = [];
         foreach ($where as $key => $val) {
-            $where_clause[] = "`$key` = ?";
-            $vals[] = $val;
+            $where_clause[] = "`$key` = '$val'";
         }
         $sql = "DELETE FROM `$table` WHERE " . implode(" AND ", $where_clause);
-        $stmt = $this->conn->prepare($sql);
-        $types = str_repeat("s", count($vals));
-        $stmt->bind_param($types, ...$vals);
-        $success = $stmt->execute();
-        $stmt->close();
-        return $success;
+        $result = $this->conn->query($sql);
+        return $result ? true : false;
     }
     
     // =======================================================================
@@ -248,26 +304,16 @@ class dbadmin {
             return ['success' => false, 'message' => 'Không thể chọn chuyên mục con làm chuyên mục cha'];
         }
         
+        // Chuẩn bị parent_id
+        $parent_id_value = empty($data['parent_id']) ? "NULL" : $data['parent_id'];
+        
         // Update category
-        $stmt = $this->conn->prepare("
-            UPDATE categories 
-            SET name = ?, slug = ?, parent_id = ? 
-            WHERE category_id = ?
-        ");
+        $sql = "UPDATE categories SET name = '$data[name]', slug = '$slug', parent_id = $parent_id_value WHERE category_id = $category_id";
         
-        $parent_id = empty($data['parent_id']) ? null : $data['parent_id'];
-        
-        $stmt->bind_param("ssii", 
-            $data['name'],
-            $slug,
-            $parent_id,
-            $category_id
-        );
-        
-        if ($stmt->execute()) {
+        if ($this->conn->query($sql)) {
             return ['success' => true, 'message' => 'Cập nhật chuyên mục thành công'];
         } else {
-            return ['success' => false, 'message' => 'Lỗi khi cập nhật: ' . $stmt->error];
+            return ['success' => false, 'message' => 'Lỗi khi cập nhật: ' . $this->conn->error];
         }
     }
 
@@ -294,22 +340,20 @@ class dbadmin {
         }
         
         // Get all children of the category
-        $stmt = $this->conn->prepare("
+        $sql = "
             WITH RECURSIVE category_tree AS (
                 SELECT category_id, parent_id
                 FROM categories
-                WHERE category_id = ?
+                WHERE category_id = $category_id
                 UNION ALL
                 SELECT c.category_id, c.parent_id
                 FROM categories c
                 INNER JOIN category_tree ct ON c.parent_id = ct.category_id
             )
             SELECT category_id FROM category_tree
-        ");
+        ";
         
-        $stmt->bind_param("i", $category_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $result = $this->conn->query($sql);
         
         // Check if proposed parent is not among children
         while ($row = $result->fetch_assoc()) {
@@ -342,30 +386,18 @@ class dbadmin {
         $slug = !empty($data['slug']) ? $data['slug'] : $this->taoSlug($title);
         $summary = $data['summary'] ?? '';
         $content = $data['content'] ?? '';
-        $image_url = $data['image_url'] ?? null;
-        $author_id = isset($data['author_id']) ? (int)$data['author_id'] : null;
+        $image_url = $data['image_url'] ?? '';
+        $author_id = isset($data['author_id']) ? (int)$data['author_id'] : 0;
         $is_featured = isset($data['is_featured']) ? (int)$data['is_featured'] : 0;
         
-        // Chuẩn bị câu lệnh SQL
+        // Thêm vào database
         $sql = "INSERT INTO articles (category_id, title, slug, summary, content, image_url, author_id, is_featured, created_at) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
-        
-        $stmt = $this->conn->prepare($sql);
-        
-        if (!$stmt) {
-            return false;
-        }
-        
-        // Bind parameters
-        $stmt->bind_param("isssssii", $category_id, $title, $slug, $summary, $content, $image_url, $author_id, $is_featured);
+                VALUES ($category_id, '$title', '$slug', '$summary', '$content', '$image_url', $author_id, $is_featured, NOW())";
         
         // Thực thi
-        if ($stmt->execute()) {
-            $insert_id = $stmt->insert_id;
-            $stmt->close();
-            return $insert_id;
+        if ($this->conn->query($sql)) {
+            return $this->conn->insert_id;
         } else {
-            $stmt->close();
             return false;
         }
     }
@@ -456,18 +488,10 @@ class dbadmin {
      * @return bool - True nếu xóa thành công, False nếu thất bại
      */
     public function xoaBaiViet($article_id) {
-        $sql = "DELETE FROM articles WHERE article_id = ?";
-        $stmt = $this->conn->prepare($sql);
+        $sql = "DELETE FROM articles WHERE article_id = $article_id";
+        $result = $this->conn->query($sql);
         
-        if (!$stmt) {
-            return false;
-        }
-        
-        $stmt->bind_param("i", $article_id);
-        $success = $stmt->execute();
-        $stmt->close();
-        
-        return $success;
+        return $result ? true : false;
     }
     
     // =======================================================================
