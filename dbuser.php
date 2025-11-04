@@ -30,7 +30,8 @@ class dbuser {
     public function layBaiVietMoiNhat($limit = 10) {
         $sql = "SELECT articles.article_id, articles.category_id, articles.title, articles.slug, 
                 articles.summary, articles.content, articles.image_url, articles.author_id, 
-                articles.is_featured, articles.created_at, categories.name as category_name 
+                articles.is_featured, articles.created_at, 
+                categories.name as category_name, categories.slug as category_slug 
                 FROM articles 
                 LEFT JOIN categories ON articles.category_id = categories.category_id 
                 ORDER BY articles.created_at DESC 
@@ -43,7 +44,8 @@ class dbuser {
     public function layBaiVietNoiBat($limit = 1) {
         $sql = "SELECT articles.article_id, articles.category_id, articles.title, articles.slug, 
                 articles.summary, articles.content, articles.image_url, articles.author_id, 
-                articles.is_featured, articles.created_at, categories.name as category_name 
+                articles.is_featured, articles.created_at, 
+                categories.name as category_name, categories.slug as category_slug 
                 FROM articles 
                 LEFT JOIN categories ON articles.category_id = categories.category_id 
                 WHERE articles.is_featured = 1
@@ -57,7 +59,8 @@ class dbuser {
     public function layBaiVietTheoCategory($category_slug, $limit = 10) {
         $sql = "SELECT articles.article_id, articles.category_id, articles.title, articles.slug, 
                 articles.summary, articles.content, articles.image_url, articles.author_id, 
-                articles.is_featured, articles.created_at, categories.name as category_name 
+                articles.is_featured, articles.created_at, 
+                categories.name as category_name, categories.slug as category_slug 
                 FROM articles 
                 LEFT JOIN categories ON articles.category_id = categories.category_id 
                 WHERE categories.slug = '$category_slug'
@@ -67,19 +70,6 @@ class dbuser {
         return $result->fetch_all(MYSQLI_ASSOC);
     }
     
-    // Lấy bài viết theo ID
-    public function layBaiVietTheoId($id) {
-        $sql = "SELECT articles.article_id, articles.category_id, articles.title, articles.slug, 
-                articles.summary, articles.content, articles.image_url, articles.author_id, 
-                articles.is_featured, articles.created_at, 
-                categories.name as category_name, categories.slug as category_slug 
-                FROM articles 
-                LEFT JOIN categories ON articles.category_id = categories.category_id 
-                WHERE articles.article_id = $id";
-        $result = $this->conn->query($sql);
-        return $result->fetch_assoc();
-    }
-    
     // Lấy tất cả chuyên mục
     public function layTatCaChuyenMuc() {
         $sql = "SELECT category_id, name, slug, parent_id FROM categories ORDER BY name ASC";
@@ -87,12 +77,31 @@ class dbuser {
         return $result->fetch_all(MYSQLI_ASSOC);
     }
     
+    // Lấy danh sách category gốc (category cha - không có parent)
+    public function layCategoryGoc($limit = 4) {
+        $sql = "SELECT category_id, name, slug, parent_id 
+                FROM categories 
+                WHERE parent_id IS NULL OR parent_id = 0
+                ORDER BY category_id ASC
+                LIMIT $limit";
+        $result = $this->conn->query($sql);
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
+    
+    // Lấy thông tin category theo slug
+    public function layCategoryTheoSlug($category_slug) {
+        $sql = "SELECT category_id, name, slug, parent_id FROM categories WHERE slug = '$category_slug'";
+        $result = $this->conn->query($sql);
+        return $result->fetch_assoc();
+    }
+    
     // Tìm kiếm bài viết
     public function timKiemBaiViet($keyword, $limit = 20) {
         $keyword = '%' . $keyword . '%';
         $sql = "SELECT articles.article_id, articles.category_id, articles.title, articles.slug, 
                 articles.summary, articles.content, articles.image_url, articles.author_id, 
-                articles.is_featured, articles.created_at, categories.name as category_name 
+                articles.is_featured, articles.created_at, 
+                categories.name as category_name, categories.slug as category_slug 
                 FROM articles 
                 LEFT JOIN categories ON articles.category_id = categories.category_id 
                 WHERE (articles.title LIKE '$keyword' OR articles.content LIKE '$keyword')
@@ -100,27 +109,6 @@ class dbuser {
                 LIMIT $limit";
         $result = $this->conn->query($sql);
         return $result->fetch_all(MYSQLI_ASSOC);
-    }
-
-    // Lấy bài viết theo category_id
-    public function layBaiVietTheoCategoryId($category_id, $limit = 20) {
-        $sql = "SELECT articles.article_id, articles.category_id, articles.title, articles.slug, 
-                articles.summary, articles.content, articles.image_url, articles.author_id, 
-                articles.is_featured, articles.created_at, categories.name as category_name 
-                FROM articles 
-                LEFT JOIN categories ON articles.category_id = categories.category_id 
-                WHERE articles.category_id = $category_id
-                ORDER BY articles.created_at DESC 
-                LIMIT $limit";
-        $result = $this->conn->query($sql);
-        return $result->fetch_all(MYSQLI_ASSOC);
-    }
-
-    // Lấy thông tin category theo ID
-    public function layCategoryTheoId($category_id) {
-        $sql = "SELECT category_id, name, slug, parent_id FROM categories WHERE category_id = $category_id";
-        $result = $this->conn->query($sql);
-        return $result->fetch_assoc();
     }
 
     // Lấy chi tiết bài viết theo ID
@@ -132,6 +120,19 @@ class dbuser {
                 FROM articles 
                 LEFT JOIN categories ON articles.category_id = categories.category_id 
                 WHERE articles.article_id = $article_id";
+        $result = $this->conn->query($sql);
+        return $result->fetch_assoc();
+    }
+
+    // Lấy chi tiết bài viết theo SLUG (SEO-friendly)
+    public function layChiTietBaiVietTheoSlug($article_slug) {
+        $sql = "SELECT articles.article_id, articles.category_id, articles.title, articles.slug, 
+                articles.summary, articles.content, articles.image_url, articles.author_id, 
+                articles.is_featured, articles.created_at, 
+                categories.name as category_name, categories.slug as category_slug
+                FROM articles 
+                LEFT JOIN categories ON articles.category_id = categories.category_id 
+                WHERE articles.slug = '$article_slug'";
         $result = $this->conn->query($sql);
         return $result->fetch_assoc();
     }
@@ -246,12 +247,7 @@ class dbuser {
     
     // Đăng xuất người dùng
     public function logout() {
-        unset($_SESSION['user_logged_in']);
-        unset($_SESSION['user_id']);
-        unset($_SESSION['username']);
-        unset($_SESSION['display_name']);
-        unset($_SESSION['role']);
-        unset($_SESSION['email']);
+        session_destroy();
         return true;
     }
 
