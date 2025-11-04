@@ -34,11 +34,8 @@ class dbuser {
                 FROM articles 
                 LEFT JOIN categories ON articles.category_id = categories.category_id 
                 ORDER BY articles.created_at DESC 
-                LIMIT ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $limit);
-        $stmt->execute();
-        $result = $stmt->get_result();
+                LIMIT $limit";
+        $result = $this->conn->query($sql);
         return $result->fetch_all(MYSQLI_ASSOC);
     }
     
@@ -51,11 +48,8 @@ class dbuser {
                 LEFT JOIN categories ON articles.category_id = categories.category_id 
                 WHERE articles.is_featured = 1
                 ORDER BY articles.created_at DESC 
-                LIMIT ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $limit);
-        $stmt->execute();
-        $result = $stmt->get_result();
+                LIMIT $limit";
+        $result = $this->conn->query($sql);
         return $result->fetch_assoc();
     }
     
@@ -66,13 +60,10 @@ class dbuser {
                 articles.is_featured, articles.created_at, categories.name as category_name 
                 FROM articles 
                 LEFT JOIN categories ON articles.category_id = categories.category_id 
-                WHERE categories.slug = ?
+                WHERE categories.slug = '$category_slug'
                 ORDER BY articles.created_at DESC 
-                LIMIT ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("si", $category_slug, $limit);
-        $stmt->execute();
-        $result = $stmt->get_result();
+                LIMIT $limit";
+        $result = $this->conn->query($sql);
         return $result->fetch_all(MYSQLI_ASSOC);
     }
     
@@ -84,11 +75,8 @@ class dbuser {
                 categories.name as category_name, categories.slug as category_slug 
                 FROM articles 
                 LEFT JOIN categories ON articles.category_id = categories.category_id 
-                WHERE articles.article_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+                WHERE articles.article_id = $id";
+        $result = $this->conn->query($sql);
         return $result->fetch_assoc();
     }
     
@@ -107,13 +95,10 @@ class dbuser {
                 articles.is_featured, articles.created_at, categories.name as category_name 
                 FROM articles 
                 LEFT JOIN categories ON articles.category_id = categories.category_id 
-                WHERE (articles.title LIKE ? OR articles.content LIKE ?)
+                WHERE (articles.title LIKE '$keyword' OR articles.content LIKE '$keyword')
                 ORDER BY articles.created_at DESC 
-                LIMIT ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("ssi", $keyword, $keyword, $limit);
-        $stmt->execute();
-        $result = $stmt->get_result();
+                LIMIT $limit";
+        $result = $this->conn->query($sql);
         return $result->fetch_all(MYSQLI_ASSOC);
     }
 
@@ -124,23 +109,17 @@ class dbuser {
                 articles.is_featured, articles.created_at, categories.name as category_name 
                 FROM articles 
                 LEFT JOIN categories ON articles.category_id = categories.category_id 
-                WHERE articles.category_id = ?
+                WHERE articles.category_id = $category_id
                 ORDER BY articles.created_at DESC 
-                LIMIT ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("ii", $category_id, $limit);
-        $stmt->execute();
-        $result = $stmt->get_result();
+                LIMIT $limit";
+        $result = $this->conn->query($sql);
         return $result->fetch_all(MYSQLI_ASSOC);
     }
 
     // Lấy thông tin category theo ID
     public function layCategoryTheoId($category_id) {
-        $sql = "SELECT category_id, name, slug, parent_id FROM categories WHERE category_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $category_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $sql = "SELECT category_id, name, slug, parent_id FROM categories WHERE category_id = $category_id";
+        $result = $this->conn->query($sql);
         return $result->fetch_assoc();
     }
 
@@ -152,11 +131,8 @@ class dbuser {
                 categories.name as category_name, categories.slug as category_slug
                 FROM articles 
                 LEFT JOIN categories ON articles.category_id = categories.category_id 
-                WHERE articles.article_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $article_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+                WHERE articles.article_id = $article_id";
+        $result = $this->conn->query($sql);
         return $result->fetch_assoc();
     }
 
@@ -166,41 +142,39 @@ class dbuser {
     
     // Đăng ký tài khoản mới
     public function dangKy($username, $password, $email, $display_name = '') {
-        // 1. Kiểm tra username đã tồn tại chưa
-        $sql = "SELECT * FROM users WHERE username = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        // 1. Kiểm tra các trường bắt buộc không được để trống
+        if (empty($username) || empty($password) || empty($email)) {
+            return ['success' => false, 'message' => 'Vui lòng điền đầy đủ thông tin!'];
+        }
+        
+        // 2. Kiểm tra username đã tồn tại chưa
+        $sql = "SELECT username FROM users WHERE username = '$username'";
+        $result = $this->conn->query($sql);
         
         if ($result->num_rows > 0) {
             return ['success' => false, 'message' => 'Tên đăng nhập đã tồn tại!'];
         }
         
-        // 2. Kiểm tra email đã tồn tại chưa
-        $sql = "SELECT * FROM users WHERE email = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        // 3. Kiểm tra email đã tồn tại chưa
+        $sql = "SELECT email FROM users WHERE email = '$email'";
+        $result = $this->conn->query($sql);
         
         if ($result->num_rows > 0) {
             return ['success' => false, 'message' => 'Email đã được sử dụng!'];
         }
         
-        // 3. Nếu không có display_name thì dùng username
+        // 4. Nếu không có display_name thì dùng username
         if (empty($display_name)) {
             $display_name = $username;
         }
         
-        // 4. Thêm user mới vào database (role = 'user')
-        $role = 'user';
-        $sql = "INSERT INTO users (username, password, email, display_name, role, created_at) 
-                VALUES (?, ?, ?, ?, ?, NOW())";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("sssss", $username, $password, $email, $display_name, $role);
+        // 5. Mã hóa password bằng MD5 và lưu vào database
+        $password_md5 = md5($password);
         
-        if ($stmt->execute()) {
+        $sql = "INSERT INTO users (username, password, email, display_name, role, created_at) 
+                VALUES ('$username', '$password_md5', '$email', '$display_name', 'user', NOW())";
+        
+        if ($this->conn->query($sql)) {
             return ['success' => true, 'message' => 'Đăng ký thành công!'];
         } else {
             return ['success' => false, 'message' => 'Lỗi khi tạo tài khoản!'];
@@ -213,29 +187,26 @@ class dbuser {
     
     // Đổi mật khẩu cho user
     public function doiMatKhau($user_id, $mat_khau_cu, $mat_khau_moi) {
-        // 1. Kiểm tra mật khẩu cũ có đúng không
-        $sql = "SELECT password FROM users WHERE user_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        // 1. Lấy password hiện tại
+        $sql = "SELECT password FROM users WHERE user_id = $user_id";
+        $result = $this->conn->query($sql);
         $user = $result->fetch_assoc();
         
         if (!$user) {
             return ['success' => false, 'message' => 'Không tìm thấy người dùng!'];
         }
         
-        // 2. So sánh mật khẩu cũ
-        if ($user['password'] !== $mat_khau_cu) {
+        // 2. So sánh mật khẩu cũ (mã hóa MD5)
+        $mat_khau_cu_md5 = md5($mat_khau_cu);
+        if ($user['password'] !== $mat_khau_cu_md5) {
             return ['success' => false, 'message' => 'Mật khẩu hiện tại không đúng!'];
         }
         
-        // 3. Cập nhật mật khẩu mới
-        $sql = "UPDATE users SET password = ? WHERE user_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("si", $mat_khau_moi, $user_id);
+        // 3. Cập nhật mật khẩu mới (mã hóa MD5)
+        $mat_khau_moi_md5 = md5($mat_khau_moi);
+        $sql = "UPDATE users SET password = '$mat_khau_moi_md5' WHERE user_id = $user_id";
         
-        if ($stmt->execute()) {
+        if ($this->conn->query($sql)) {
             return ['success' => true, 'message' => 'Đổi mật khẩu thành công!'];
         } else {
             return ['success' => false, 'message' => 'Lỗi khi đổi mật khẩu!'];
@@ -246,58 +217,61 @@ class dbuser {
     // TÍNH NĂNG: ĐĂNG NHẬP USER
     // =======================================================================
     
-    public function dangNhap($username, $password) {
+    public function login($username, $password) {
+        // Mã hóa password bằng MD5
+        $password_md5 = md5($password);
+        
         // Lấy tất cả tài khoản từ database
         $sql = "SELECT * FROM users";
         $result = $this->conn->query($sql);
         
         // Duyệt qua từng tài khoản
         while ($row = $result->fetch_assoc()) {
-            // Nếu tìm thấy username và password khớp VÀ role phải là user (không phải admin/editor)
-            if ($row['username'] == $username && $row['password'] == $password) {
-                if ($row['role'] == 'user') {
-                    return $row; // Đăng nhập thành công, trả về thông tin user
-                }
+            // Nếu tìm thấy username và password khớp
+            if ($row['username'] == $username && $row['password'] == $password_md5) {
+                // Lưu thông tin vào session
+                $_SESSION['user_logged_in'] = true;
+                $_SESSION['user_id'] = $row['user_id'];
+                $_SESSION['username'] = $row['username'];
+                $_SESSION['display_name'] = $row['display_name'];
+                $_SESSION['role'] = $row['role'];
+                $_SESSION['email'] = $row['email'];
+                
+                return true;
             }
         }
         
-        return false; // Không tìm thấy tài khoản khớp hoặc không phải user
+        return false;
     }
     
-    // Đăng xuất người dùng (đơn giản)
-    public function dangXuat() {
+    // Đăng xuất người dùng
+    public function logout() {
+        unset($_SESSION['user_logged_in']);
+        unset($_SESSION['user_id']);
+        unset($_SESSION['username']);
+        unset($_SESSION['display_name']);
+        unset($_SESSION['role']);
+        unset($_SESSION['email']);
         return true;
     }
 
     // Kiểm tra đã đăng nhập hay chưa
-    public function kiemTraDangNhap() {
-        return isset($_SESSION['user_id']);
+    public function isLoggedIn() {
+        if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) {
+            return true;
+        }
+        return false;
     }
     
-    // Lấy thông tin user hiện tại từ session
-    public function layUserHienTai() {
-        if (isset($_SESSION['user_id'])) {
-            // Query lại database để lấy thông tin đầy đủ
-            $sql = "SELECT user_id, username, password, role, display_name, email, created_at 
-                    FROM users 
-                    WHERE user_id = ?";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bind_param("i", $_SESSION['user_id']);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            
-            if ($result->num_rows > 0) {
-                return $result->fetch_assoc();
-            }
-            
-            // Nếu không tìm thấy trong DB, trả về thông tin từ session
+    // Lấy thông tin user hiện tại
+    public function getCurrentUser() {
+        if ($this->isLoggedIn()) {
             return [
                 'user_id' => $_SESSION['user_id'],
-                'username' => $_SESSION['username'] ?? '',
-                'display_name' => $_SESSION['display_name'] ?? '',
-                'role' => $_SESSION['role'] ?? 'user',
-                'email' => '',
-                'created_at' => date('Y-m-d H:i:s')
+                'username' => $_SESSION['username'],
+                'display_name' => $_SESSION['display_name'],
+                'role' => $_SESSION['role'],
+                'email' => $_SESSION['email']
             ];
         }
         return null;
@@ -305,21 +279,15 @@ class dbuser {
 
     // Kiểm tra user đã thích bài viết chưa
     public function daThichBaiViet($user_id, $article_id) {
-        $sql = "SELECT * FROM article_likes WHERE user_id = ? AND article_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("ii", $user_id, $article_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $sql = "SELECT * FROM article_likes WHERE user_id = $user_id AND article_id = $article_id";
+        $result = $this->conn->query($sql);
         return $result->num_rows > 0;
     }
 
     // Kiểm tra user đã lưu bài viết chưa
     public function daLuuBaiViet($user_id, $article_id) {
-        $sql = "SELECT * FROM article_saves WHERE user_id = ? AND article_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("ii", $user_id, $article_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $sql = "SELECT * FROM article_saves WHERE user_id = $user_id AND article_id = $article_id";
+        $result = $this->conn->query($sql);
         return $result->num_rows > 0;
     }
 
@@ -327,17 +295,13 @@ class dbuser {
     public function toggleThichBaiViet($user_id, $article_id) {
         if ($this->daThichBaiViet($user_id, $article_id)) {
             // Đã thích -> Bỏ thích
-            $sql = "DELETE FROM article_likes WHERE user_id = ? AND article_id = ?";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bind_param("ii", $user_id, $article_id);
-            $stmt->execute();
+            $sql = "DELETE FROM article_likes WHERE user_id = $user_id AND article_id = $article_id";
+            $this->conn->query($sql);
             return false;
         } else {
             // Chưa thích -> Thêm thích
-            $sql = "INSERT INTO article_likes (user_id, article_id) VALUES (?, ?)";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bind_param("ii", $user_id, $article_id);
-            $stmt->execute();
+            $sql = "INSERT INTO article_likes (user_id, article_id) VALUES ($user_id, $article_id)";
+            $this->conn->query($sql);
             return true;
         }
     }
@@ -346,39 +310,29 @@ class dbuser {
     public function toggleLuuBaiViet($user_id, $article_id) {
         if ($this->daLuuBaiViet($user_id, $article_id)) {
             // Đã lưu -> Bỏ lưu
-            $sql = "DELETE FROM article_saves WHERE user_id = ? AND article_id = ?";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bind_param("ii", $user_id, $article_id);
-            $stmt->execute();
+            $sql = "DELETE FROM article_saves WHERE user_id = $user_id AND article_id = $article_id";
+            $this->conn->query($sql);
             return false;
         } else {
             // Chưa lưu -> Thêm lưu
-            $sql = "INSERT INTO article_saves (user_id, article_id) VALUES (?, ?)";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bind_param("ii", $user_id, $article_id);
-            $stmt->execute();
+            $sql = "INSERT INTO article_saves (user_id, article_id) VALUES ($user_id, $article_id)";
+            $this->conn->query($sql);
             return true;
         }
     }
 
     // Đếm số lượt thích của bài viết
     public function demLuotThich($article_id) {
-        $sql = "SELECT COUNT(*) as total FROM article_likes WHERE article_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $article_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $sql = "SELECT COUNT(*) as total FROM article_likes WHERE article_id = $article_id";
+        $result = $this->conn->query($sql);
         $row = $result->fetch_assoc();
         return $row['total'];
     }
 
     // Đếm số lượt lưu của bài viết
     public function demLuotLuu($article_id) {
-        $sql = "SELECT COUNT(*) as total FROM article_saves WHERE article_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $article_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $sql = "SELECT COUNT(*) as total FROM article_saves WHERE article_id = $article_id";
+        $result = $this->conn->query($sql);
         $row = $result->fetch_assoc();
         return $row['total'];
     }
@@ -388,10 +342,8 @@ class dbuser {
     // Thêm bình luận mới
     public function themBinhLuan($article_id, $user_id, $content) {
         $sql = "INSERT INTO comments (article_id, user_id, content, created_at) 
-                VALUES (?, ?, ?, NOW())";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("iis", $article_id, $user_id, $content);
-        return $stmt->execute();
+                VALUES ($article_id, $user_id, '$content', NOW())";
+        return $this->conn->query($sql);
     }
 
     // Lấy danh sách bình luận của bài viết
@@ -399,87 +351,64 @@ class dbuser {
         $sql = "SELECT c.*, u.username, u.display_name 
                 FROM comments c
                 JOIN users u ON c.user_id = u.user_id
-                WHERE c.article_id = ?
+                WHERE c.article_id = $article_id
                 ORDER BY c.created_at DESC";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $article_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $result = $this->conn->query($sql);
         return $result->fetch_all(MYSQLI_ASSOC);
     }
 
     // Đếm số bình luận của bài viết
     public function demBinhLuan($article_id) {
-        $sql = "SELECT COUNT(*) as total FROM comments WHERE article_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $article_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $sql = "SELECT COUNT(*) as total FROM comments WHERE article_id = $article_id";
+        $result = $this->conn->query($sql);
         $row = $result->fetch_assoc();
         return $row['total'];
     }
 
-    // Xóa bình luận (chỉ user tự xóa bình luận của mình)
+    // Xóa bình luận
     public function xoaBinhLuan($comment_id, $user_id) {
-        $sql = "DELETE FROM comments WHERE comment_id = ? AND user_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("ii", $comment_id, $user_id);
-        return $stmt->execute();
+        $sql = "DELETE FROM comments WHERE comment_id = $comment_id AND user_id = $user_id";
+        return $this->conn->query($sql);
     }
 
-    // Sửa bình luận (chỉ user tự sửa bình luận của mình)
+    // Sửa bình luận
     public function suaBinhLuan($comment_id, $user_id, $content) {
-        $sql = "UPDATE comments SET content = ? WHERE comment_id = ? AND user_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("sii", $content, $comment_id, $user_id);
-        return $stmt->execute();
+        $sql = "UPDATE comments SET content = '$content' WHERE comment_id = $comment_id AND user_id = $user_id";
+        return $this->conn->query($sql);
     }
 
     // Lấy thông tin 1 bình luận
     public function layMotBinhLuan($comment_id) {
-        $sql = "SELECT * FROM comments WHERE comment_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $comment_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $sql = "SELECT * FROM comments WHERE comment_id = $comment_id";
+        $result = $this->conn->query($sql);
         return $result->fetch_assoc();
     }
 
     // ========== LƯỢT XEM BÀI VIẾT ==========
     
-    // Lưu lượt xem bài viết (1 user chỉ xem 1 lần)
+    // Lưu lượt xem bài viết
     public function luuLuotXem($user_id, $article_id) {
         // Kiểm tra đã xem chưa
-        $sql = "SELECT * FROM article_views WHERE user_id = ? AND article_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("ii", $user_id, $article_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $sql = "SELECT * FROM article_views WHERE user_id = $user_id AND article_id = $article_id";
+        $result = $this->conn->query($sql);
         
         if ($result->num_rows == 0) {
             // Chưa xem -> Thêm mới
-            $sql = "INSERT INTO article_views (user_id, article_id, viewed_at) VALUES (?, ?, NOW())";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bind_param("ii", $user_id, $article_id);
-            $stmt->execute();
+            $sql = "INSERT INTO article_views (user_id, article_id, viewed_at) VALUES ($user_id, $article_id, NOW())";
+            $this->conn->query($sql);
             return true;
         } else {
             // Đã xem -> Cập nhật thời gian
-            $sql = "UPDATE article_views SET viewed_at = NOW() WHERE user_id = ? AND article_id = ?";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bind_param("ii", $user_id, $article_id);
-            $stmt->execute();
+            $sql = "UPDATE article_views SET viewed_at = NOW() WHERE user_id = $user_id AND article_id = $article_id";
+            $this->conn->query($sql);
             return false;
         }
     }
     
     // Đếm tổng lượt xem của bài viết
     public function demLuotXemBaiViet($article_id) {
-        $sql = "SELECT COUNT(*) as total FROM article_views WHERE article_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $article_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $sql = "SELECT COUNT(*) as total FROM article_views WHERE article_id = $article_id";
+        $result = $this->conn->query($sql);
         $row = $result->fetch_assoc();
         return $row['total'];
     }
@@ -488,33 +417,24 @@ class dbuser {
     
     // Đếm số bài đã đọc của user
     public function demBaiDaDoc($user_id) {
-        $sql = "SELECT COUNT(*) as total FROM article_views WHERE user_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $sql = "SELECT COUNT(*) as total FROM article_views WHERE user_id = $user_id";
+        $result = $this->conn->query($sql);
         $row = $result->fetch_assoc();
         return $row['total'];
     }
     
     // Đếm số bài yêu thích của user
     public function demBaiYeuThich($user_id) {
-        $sql = "SELECT COUNT(*) as total FROM article_likes WHERE user_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $sql = "SELECT COUNT(*) as total FROM article_likes WHERE user_id = $user_id";
+        $result = $this->conn->query($sql);
         $row = $result->fetch_assoc();
         return $row['total'];
     }
     
     // Đếm số bài đã lưu của user
     public function demBaiDaLuu($user_id) {
-        $sql = "SELECT COUNT(*) as total FROM article_saves WHERE user_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $sql = "SELECT COUNT(*) as total FROM article_saves WHERE user_id = $user_id";
+        $result = $this->conn->query($sql);
         $row = $result->fetch_assoc();
         return $row['total'];
     }
@@ -525,13 +445,10 @@ class dbuser {
                 FROM article_views v
                 JOIN articles a ON v.article_id = a.article_id
                 LEFT JOIN categories c ON a.category_id = c.category_id
-                WHERE v.user_id = ?
+                WHERE v.user_id = $user_id
                 ORDER BY v.viewed_at DESC
-                LIMIT ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("ii", $user_id, $limit);
-        $stmt->execute();
-        $result = $stmt->get_result();
+                LIMIT $limit";
+        $result = $this->conn->query($sql);
         return $result->fetch_all(MYSQLI_ASSOC);
     }
     
@@ -541,13 +458,10 @@ class dbuser {
                 FROM article_likes l
                 JOIN articles a ON l.article_id = a.article_id
                 LEFT JOIN categories c ON a.category_id = c.category_id
-                WHERE l.user_id = ?
+                WHERE l.user_id = $user_id
                 ORDER BY l.created_at DESC
-                LIMIT ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("ii", $user_id, $limit);
-        $stmt->execute();
-        $result = $stmt->get_result();
+                LIMIT $limit";
+        $result = $this->conn->query($sql);
         return $result->fetch_all(MYSQLI_ASSOC);
     }
 
