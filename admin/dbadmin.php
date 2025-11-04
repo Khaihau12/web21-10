@@ -71,9 +71,9 @@ class dbadmin {
 
     // Kiểm tra đã đăng nhập hay chưa (phải là admin hoặc editor)
     public function isLoggedIn() {
-        if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
-            // Kiểm tra thêm role phải là admin hoặc editor
-            if (isset($_SESSION['admin_role']) && ($_SESSION['admin_role'] == 'admin' || $_SESSION['admin_role'] == 'editor')) {
+        // Kiểm tra có session admin_logged_in và role phải là admin hoặc editor
+        if (isset($_SESSION['admin_logged_in']) && isset($_SESSION['admin_role'])) {
+            if ($_SESSION['admin_role'] == 'admin' || $_SESSION['admin_role'] == 'editor') {
                 return true;
             }
         }
@@ -115,8 +115,6 @@ class dbadmin {
         while ($row = $result->fetch_assoc()) {
             $danhSach[] = $row;
         }
-        
-        $result->free();
         
         return $danhSach;
     }
