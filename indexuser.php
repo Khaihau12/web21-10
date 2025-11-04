@@ -18,9 +18,23 @@ $message_type = '';
 
 // Xử lý đổi mật khẩu
 if (isset($_POST['change_password'])) {
-    $mat_khau_cu = trim($_POST['current_password'] ?? '');
-    $mat_khau_moi = trim($_POST['new_password'] ?? '');
-    $nhap_lai_mat_khau = trim($_POST['confirm_password'] ?? '');
+    if (isset($_POST['current_password'])) {
+        $mat_khau_cu = trim($_POST['current_password']);
+    } else {
+        $mat_khau_cu = '';
+    }
+    
+    if (isset($_POST['new_password'])) {
+        $mat_khau_moi = trim($_POST['new_password']);
+    } else {
+        $mat_khau_moi = '';
+    }
+    
+    if (isset($_POST['confirm_password'])) {
+        $nhap_lai_mat_khau = trim($_POST['confirm_password']);
+    } else {
+        $nhap_lai_mat_khau = '';
+    }
     
     // Validate
     if (empty($mat_khau_cu) || empty($mat_khau_moi) || empty($nhap_lai_mat_khau)) {
@@ -36,7 +50,11 @@ if (isset($_POST['change_password'])) {
         // Gọi function đổi mật khẩu
         $result = $db->doiMatKhau($currentUser['user_id'], $mat_khau_cu, $mat_khau_moi);
         $message = $result['message'];
-        $message_type = $result['success'] ? 'success' : 'error';
+        if ($result['success']) {
+            $message_type = 'success';
+        } else {
+            $message_type = 'error';
+        }
     }
 }
 
@@ -54,7 +72,7 @@ $danhMuc = $db->layTatCaChuyenMuc();
 
 // Xử lý đăng xuất
 if (isset($_POST["logout"])) {
-    session_destroy();
+    $db->logout();
     header("Location: index.php");
     exit;
 }
@@ -232,7 +250,14 @@ if (isset($_POST["logout"])) {
                             <button type="submit"><i class="fa fa-search"></i></button>
                         </form>
                         <div class="user-links">
-                            <a href="indexuser.php"><i class="fa fa-user"></i> <?php echo htmlspecialchars($currentUser['display_name'] ?: $currentUser['username']); ?></a>
+                            <?php 
+                            if ($currentUser['display_name']) {
+                                $ten_hien_thi = $currentUser['display_name'];
+                            } else {
+                                $ten_hien_thi = $currentUser['username'];
+                            }
+                            ?>
+                            <a href="indexuser.php"><i class="fa fa-user"></i> <?php echo $ten_hien_thi; ?></a>
                         </div>
                     </div>
                 </div>
@@ -241,9 +266,9 @@ if (isset($_POST["logout"])) {
                 <nav class="main-navigation">
                     <ul>
                         <li><a href="index.php"><i class="fa fa-home"></i> Trang Chủ</a></li>
-                        <?php foreach($danhMuc as $dm): ?>
-                        <li><a href="category.php?id=<?php echo $dm['category_id']; ?>"><?php echo htmlspecialchars($dm['name']); ?></a></li>
-                        <?php endforeach; ?>
+                        <?php foreach($danhMuc as $dm) { ?>
+                        <li><a href="category.php?id=<?php echo $dm['category_id']; ?>"><?php echo $dm['name']; ?></a></li>
+                        <?php } ?>
                     </ul>
                 </nav>
             </div>
@@ -272,7 +297,13 @@ if (isset($_POST["logout"])) {
                         <li>📖 Bài đã đọc: <strong><?php echo $soBaiDaDoc; ?></strong></li>
                         <li>❤️ Bài yêu thích: <strong><?php echo $soBaiYeuThich; ?></strong></li>
                         <li>🔖 Bài đã lưu: <strong><?php echo $soBaiDaLuu; ?></strong></li>
-                        <li>📅 Ngày tham gia: <strong><?php echo date('d/m/Y', strtotime($currentUser['created_at'] ?? 'now')); ?></strong></li>
+                        <li>📅 Ngày tham gia: <strong><?php 
+                        if (isset($currentUser['created_at'])) {
+                            echo date('d/m/Y', strtotime($currentUser['created_at']));
+                        } else {
+                            echo date('d/m/Y');
+                        }
+                        ?></strong></li>
                     </ul>
                 </aside>
                 <div class="content">
@@ -280,10 +311,29 @@ if (isset($_POST["logout"])) {
                         <div class="user-info">
                             <div class="user-avatar"><?php echo strtoupper(substr($currentUser['username'], 0, 1)); ?></div>
                             <div class="user-details">
-                                <h2><?php echo htmlspecialchars($currentUser['display_name'] ?: $currentUser['username']); ?></h2>
-                                <p>📧 Email: <?php echo htmlspecialchars($currentUser['email'] ?? 'Chưa cập nhật'); ?></p>
-                                <p>👤 Tên đăng nhập: <?php echo htmlspecialchars($currentUser['username']); ?></p>
-                                <p>📅 Ngày tham gia: <?php echo date('d/m/Y', strtotime($currentUser['created_at'] ?? 'now')); ?></p>
+                                <?php 
+                                if ($currentUser['display_name']) {
+                                    $ten_hien_thi = $currentUser['display_name'];
+                                } else {
+                                    $ten_hien_thi = $currentUser['username'];
+                                }
+                                ?>
+                                <h2><?php echo $ten_hien_thi; ?></h2>
+                                <p>📧 Email: <?php 
+                                if (isset($currentUser['email'])) {
+                                    echo $currentUser['email'];
+                                } else {
+                                    echo 'Chưa cập nhật';
+                                }
+                                ?></p>
+                                <p>👤 Tên đăng nhập: <?php echo $currentUser['username']; ?></p>
+                                <p>📅 Ngày tham gia: <?php 
+                                if (isset($currentUser['created_at'])) {
+                                    echo date('d/m/Y', strtotime($currentUser['created_at']));
+                                } else {
+                                    echo date('d/m/Y');
+                                }
+                                ?></p>
                             </div>
                         </div>
                         <div class="user-tabs">
@@ -293,70 +343,70 @@ if (isset($_POST["logout"])) {
                         </div>
                         <div id="recent" class="tab-content active">
                             <h3 style="margin-bottom: 20px;">Bài viết đã đọc gần đây</h3>
-                            <?php if(count($danhSachBaiDaDoc) > 0): ?>
-                                <?php foreach($danhSachBaiDaDoc as $bai): ?>
+                            <?php if(count($danhSachBaiDaDoc) > 0) { ?>
+                                <?php foreach($danhSachBaiDaDoc as $bai) { ?>
                                 <div class="article-card" style="margin-bottom: 15px;">
-                                    <img src="<?php echo $bai['image_url']; ?>" alt="<?php echo htmlspecialchars($bai['title']); ?>">
+                                    <img src="<?php echo $bai['image_url']; ?>" alt="<?php echo $bai['title']; ?>">
                                     <div class="article-content">
                                         <h3>
                                             <a href="article.php?id=<?php echo $bai['article_id']; ?>">
-                                                <?php echo htmlspecialchars($bai['title']); ?>
+                                                <?php echo $bai['title']; ?>
                                             </a>
                                         </h3>
                                         <div class="meta">
-                                            <span>📁 <?php echo htmlspecialchars($bai['category_name']); ?></span> |
+                                            <span>📁 <?php echo $bai['category_name']; ?></span> |
                                             <span>👁️ Đọc lúc: <?php echo date('d/m/Y H:i', strtotime($bai['viewed_at'])); ?></span>
                                         </div>
-                                        <p><?php echo htmlspecialchars(substr($bai['summary'], 0, 100)); ?>...</p>
+                                        <p><?php echo substr($bai['summary'], 0, 100); ?>...</p>
                                         <a href="article.php?id=<?php echo $bai['article_id']; ?>" class="read-more">Đọc lại →</a>
                                     </div>
                                 </div>
-                                <?php endforeach; ?>
-                            <?php else: ?>
+                                <?php } ?>
+                            <?php } else { ?>
                             <div class="empty-message">
                                 <i class="fa fa-book-open"></i>
                                 <p>Bạn chưa đọc bài viết nào</p>
                                 <a href="index.php">Về trang chủ xem tin</a>
                             </div>
-                            <?php endif; ?>
+                            <?php } ?>
                         </div>
                         <div id="favorite" class="tab-content">
                             <h3 style="margin-bottom: 20px;">Bài viết yêu thích</h3>
-                            <?php if(count($danhSachBaiYeuThich) > 0): ?>
-                                <?php foreach($danhSachBaiYeuThich as $bai): ?>
+                            <?php if(count($danhSachBaiYeuThich) > 0) { ?>
+                                <?php foreach($danhSachBaiYeuThich as $bai) { ?>
                                 <div class="article-card" style="margin-bottom: 15px;">
-                                    <img src="<?php echo $bai['image_url']; ?>" alt="<?php echo htmlspecialchars($bai['title']); ?>">
+                                    <img src="<?php echo $bai['image_url']; ?>" alt="<?php echo $bai['title']; ?>">
                                     <div class="article-content">
                                         <h3>
                                             <a href="article.php?id=<?php echo $bai['article_id']; ?>">
-                                                <?php echo htmlspecialchars($bai['title']); ?>
+                                                <?php echo $bai['title']; ?>
                                             </a>
                                         </h3>
                                         <div class="meta">
-                                            <span>📁 <?php echo htmlspecialchars($bai['category_name']); ?></span> |
+                                            <span>📁 <?php echo $bai['category_name']; ?></span> |
                                             <span>❤️ Thích lúc: <?php echo date('d/m/Y H:i', strtotime($bai['liked_at'])); ?></span>
                                         </div>
-                                        <p><?php echo htmlspecialchars(substr($bai['summary'], 0, 100)); ?>...</p>
+                                        <p><?php echo substr($bai['summary'], 0, 100); ?>...</p>
                                         <a href="article.php?id=<?php echo $bai['article_id']; ?>" class="read-more">Đọc tiếp →</a>
                                     </div>
                                 </div>
-                                <?php endforeach; ?>
-                            <?php else: ?>
+                                <?php } ?>
+                            <?php } else { ?>
                             <div class="empty-message">
                                 <i class="fa fa-heart"></i>
                                 <p>Bạn chưa có bài viết yêu thích nào</p>
                                 <a href="index.php">Về trang chủ xem tin</a>
                             </div>
-                            <?php endif; ?>
+                            <?php } ?>
                         </div>
                         <div id="password" class="tab-content">
                             <h3 style="margin-bottom: 20px;">Đổi mật khẩu</h3>
                             
-                            <?php if ($message && isset($_POST['change_password'])): ?>
+                            <?php if ($message && isset($_POST['change_password'])) { ?>
                                 <div class="message <?php echo $message_type; ?>">
                                     <?php echo $message; ?>
                                 </div>
-                            <?php endif; ?>
+                            <?php } ?>
                             
                             <form method="POST" class="change-password-form">
                                 <div class="form-group">
