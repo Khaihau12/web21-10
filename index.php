@@ -5,14 +5,18 @@ $db = new dbuser();
 
 // Lấy dữ liệu từ database
 $tinNoiBat = $db->layBaiVietNoiBat(1); // Lấy 1 bài nổi bật nhất
-$tinMoiNhat = $db->layTatCaBaiViet(10); // Lấy 10 tin mới nhất
+$tinMoiNhat = $db->layBaiVietMoiNhat(10); // Lấy 10 tin mới nhất
 $tinTheThao = $db->layBaiVietTheoCategory('the-thao', 4); // Lấy 4 tin thể thao
-$tinSidebar = $db->layTatCaBaiViet(5); // Lấy 5 tin cho sidebar
+$tinSidebar = $db->layBaiVietMoiNhat(5); // Lấy 5 tin cho sidebar
 $danhMuc = $db->layTatCaChuyenMuc(); // Lấy tất cả danh mục
 
 // Kiểm tra đăng nhập
 $isLoggedIn = $db->isLoggedIn();
-$currentUser = $isLoggedIn ? $db->getCurrentUser() : null;
+if ($isLoggedIn) {
+    $currentUser = $db->getCurrentUser();
+} else {
+    $currentUser = null;
+}
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -45,11 +49,11 @@ $currentUser = $isLoggedIn ? $db->getCurrentUser() : null;
                             <button type="submit"><i class="fa fa-search"></i></button>
                         </form>
                         <div class="user-links">
-                            <?php if($isLoggedIn): ?>
-                                <a href="indexuser.php"><i class="fa fa-user"></i> <?php echo htmlspecialchars($currentUser['display_name'] ?: $currentUser['username']); ?></a>
-                            <?php else: ?>
+                            <?php if($isLoggedIn) { ?>
+                                <a href="indexuser.php"><i class="fa fa-user"></i> <?php echo $currentUser['display_name']; ?></a>
+                            <?php } else { ?>
                                 <a href="loginuser.php"><i class="fa fa-user"></i> Đăng nhập</a>
-                            <?php endif; ?>
+                            <?php } ?>
                         </div>
                     </div>
                 </div>
@@ -58,9 +62,9 @@ $currentUser = $isLoggedIn ? $db->getCurrentUser() : null;
                 <nav class="main-navigation">
                     <ul>
                         <li><a href="index.php" class="active"><i class="fa fa-home"></i> Trang Chủ</a></li>
-                        <?php foreach($danhMuc as $dm): ?>
-                        <li><a href="category.php?id=<?php echo $dm['category_id']; ?>"><?php echo htmlspecialchars($dm['name']); ?></a></li>
-                        <?php endforeach; ?>
+                        <?php foreach($danhMuc as $dm) { ?>
+                        <li><a href="category.php?id=<?php echo $dm['category_id']; ?>"><?php echo $dm['name']; ?></a></li>
+                        <?php } ?>
                     </ul>
                 </nav>
             </div>
@@ -77,39 +81,39 @@ $currentUser = $isLoggedIn ? $db->getCurrentUser() : null;
                 <!-- SECTION: Tin nổi bật -->
                 <section class="hightl-24h-block d-flex">
                     <!-- Bài nổi bật lớn -->
-                    <?php if($tinNoiBat): ?>
+                    <?php if($tinNoiBat) { ?>
                     <div class="hightl-24h-big hightl-24h-big--col">
                         <a href="article.php?id=<?php echo $tinNoiBat['article_id']; ?>">
-                            <img src="<?php echo $tinNoiBat['image_url']; ?>" alt="<?php echo htmlspecialchars($tinNoiBat['title']); ?>" class="img-fluid hightl-img-big">
+                            <img src="<?php echo $tinNoiBat['image_url']; ?>" alt="<?php echo $tinNoiBat['title']; ?>" class="img-fluid hightl-img-big">
                         </a>
                         <h2 class="hightl-title-big">
                             <a href="article.php?id=<?php echo $tinNoiBat['article_id']; ?>" class="fw-bold color-main hover-color-24h">
-                                <?php echo htmlspecialchars($tinNoiBat['title']); ?>
+                                <?php echo $tinNoiBat['title']; ?>
                             </a>
                         </h2>
-                        <p class="hightl-summary"><?php echo htmlspecialchars(substr($tinNoiBat['summary'], 0, 150)); ?>...</p>
+                        <p class="hightl-summary"><?php echo substr($tinNoiBat['summary'], 0, 150); ?>...</p>
                     </div>
-                    <?php endif; ?>
+                    <?php } ?>
                     
                     <!-- Danh sách tin nổi bật nhỏ -->
                     <div class="hightl-24h-list" style="flex: 1; padding-left: 20px;">
                         <?php 
                         $tinNho = array_slice($tinMoiNhat, 1, 3); // Lấy 3 tin tiếp theo
-                        foreach($tinNho as $tin): 
+                        foreach($tinNho as $tin) { 
                         ?>
                         <article class="hightl-24h-items" style="margin-bottom: 15px;">
                             <span class="hightl-24h-items-cate d-block mar-b-5">
                                 <a href="category.php?id=<?php echo $tin['category_id']; ?>" class="color-24h">
-                                    <?php echo htmlspecialchars($tin['category_name']); ?>
+                                    <?php echo $tin['category_name']; ?>
                                 </a>
                             </span>
                             <h3>
                                 <a href="article.php?id=<?php echo $tin['article_id']; ?>" class="d-block fw-medium color-main hover-color-24h">
-                                    <?php echo htmlspecialchars($tin['title']); ?>
+                                    <?php echo $tin['title']; ?>
                                 </a>
                             </h3>
                         </article>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
                 </section>
 
@@ -125,31 +129,31 @@ $currentUser = $isLoggedIn ? $db->getCurrentUser() : null;
                     </header>
                     <div class="category-showcase-content">
                         <!-- Bài chính -->
-                        <?php if(isset($tinTheThao[0])): ?>
+                        <?php if(isset($tinTheThao[0])) { ?>
                         <article class="showcase-top-story">
                             <a href="article.php?id=<?php echo $tinTheThao[0]['article_id']; ?>" class="story-image">
-                                <img src="<?php echo $tinTheThao[0]['image_url']; ?>" alt="<?php echo htmlspecialchars($tinTheThao[0]['title']); ?>">
+                                <img src="<?php echo $tinTheThao[0]['image_url']; ?>" alt="<?php echo $tinTheThao[0]['title']; ?>">
                             </a>
                             <div class="story-content">
-                                <h3><a href="article.php?id=<?php echo $tinTheThao[0]['article_id']; ?>"><?php echo htmlspecialchars($tinTheThao[0]['title']); ?></a></h3>
-                                <p><?php echo htmlspecialchars(substr($tinTheThao[0]['summary'], 0, 150)); ?>...</p>
+                                <h3><a href="article.php?id=<?php echo $tinTheThao[0]['article_id']; ?>"><?php echo $tinTheThao[0]['title']; ?></a></h3>
+                                <p><?php echo substr($tinTheThao[0]['summary'], 0, 150); ?>...</p>
                             </div>
                         </article>
-                        <?php endif; ?>
+                        <?php } ?>
                         
                         <!-- Các bài nhỏ -->
                         <div class="showcase-bottom-stories">
                             <?php 
                             $tinNhoTheThao = array_slice($tinTheThao, 1, 3);
-                            foreach($tinNhoTheThao as $tin): 
+                            foreach($tinNhoTheThao as $tin) { 
                             ?>
                             <article class="story-small">
                                 <a href="article.php?id=<?php echo $tin['article_id']; ?>" class="story-image">
-                                    <img src="<?php echo $tin['image_url']; ?>" alt="<?php echo htmlspecialchars($tin['title']); ?>">
+                                    <img src="<?php echo $tin['image_url']; ?>" alt="<?php echo $tin['title']; ?>">
                                 </a>
-                                <h4><a href="article.php?id=<?php echo $tin['article_id']; ?>"><?php echo htmlspecialchars($tin['title']); ?></a></h4>
+                                <h4><a href="article.php?id=<?php echo $tin['article_id']; ?>"><?php echo $tin['title']; ?></a></h4>
                             </article>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </div>
                     </div>
                 </section>
@@ -163,20 +167,20 @@ $currentUser = $isLoggedIn ? $db->getCurrentUser() : null;
                     </div>
                     
                     <!-- Bài viết -->
-                    <?php foreach($tinMoiNhat as $tin): ?>
+                    <?php foreach($tinMoiNhat as $tin) { ?>
                     <div class="article-card">
-                        <img src="<?php echo $tin['image_url']; ?>" alt="<?php echo htmlspecialchars($tin['title']); ?>">
+                        <img src="<?php echo $tin['image_url']; ?>" alt="<?php echo $tin['title']; ?>">
                         <div class="article-content">
-                            <h3><?php echo htmlspecialchars($tin['title']); ?></h3>
+                            <h3><?php echo $tin['title']; ?></h3>
                             <div class="meta">
                                 <span>📅 <?php echo date('d/m/Y', strtotime($tin['created_at'])); ?></span> |
-                                <span>📁 <?php echo htmlspecialchars($tin['category_name']); ?></span>
+                                <span>📁 <?php echo $tin['category_name']; ?></span>
                             </div>
-                            <p><?php echo htmlspecialchars(substr($tin['summary'], 0, 150)); ?>...</p>
+                            <p><?php echo substr($tin['summary'], 0, 150); ?>...</p>
                             <a href="article.php?id=<?php echo $tin['article_id']; ?>" class="read-more">Đọc tiếp →</a>
                         </div>
                     </div>
-                    <?php endforeach; ?>
+                    <?php } ?>
                 </section>
 
             </div>
@@ -188,18 +192,18 @@ $currentUser = $isLoggedIn ? $db->getCurrentUser() : null;
                         <h2 class="fw-bold text-uppercase color-green-custom">📌 TIN MỚI NHẤT</h2>
                     </header>
                     <div class="latest-news-list">
-                        <?php foreach($tinSidebar as $tin): ?>
+                        <?php foreach($tinSidebar as $tin) { ?>
                         <div class="sidebar-article">
                             <h4 style="font-size: 11px; color: #888; text-transform: uppercase;">
-                                <?php echo htmlspecialchars($tin['category_name']); ?>
+                                <?php echo $tin['category_name']; ?>
                             </h4>
                             <p>
                                 <a href="article.php?id=<?php echo $tin['article_id']; ?>" class="color-main hover-color-24h">
-                                    <?php echo htmlspecialchars($tin['title']); ?>
+                                    <?php echo $tin['title']; ?>
                                 </a>
                             </p>
                         </div>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
                 </div>
             </aside>
