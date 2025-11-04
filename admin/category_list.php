@@ -23,7 +23,7 @@ $categories = $db->getList("categories",);
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($categories as $cat): ?>
+            <?php foreach ($categories as $cat) { ?>
                 <tr>
                     <td><?= $cat['category_id'] ?></td>
                     <td><?= $cat['name'] ?></td>
@@ -36,11 +36,11 @@ $categories = $db->getList("categories",);
                         </form>
                     </td>
                 </tr>
-            <?php endforeach; ?>
+            <?php } ?>
         </tbody>
     </table>
     
-    <?php if (isset($_GET['msg']) && $_GET['msg'] == "success"): ?>
+    <?php if (isset($_GET['msg']) && $_GET['msg'] == "success") { ?>
         <p style="color: green; margin-top: 15px;">✓ Xóa loại tin thành công!</p>
-    <?php endif; ?>
+    <?php } ?>
 </div>
