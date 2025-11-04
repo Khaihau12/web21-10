@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($category)) {
     
     // Sửa chuyên mục
     if ($db->suaChuyenMuc($category_id, $name, $slug, $parent_id)) {
-        $message = "✓ Sửa chuyên mục thành công!";
+        $message = "✅ Chỉnh sửa chuyên mục thành công!";
         $message_type = "success";
         
         // Lấy lại thông tin sau khi sửa
@@ -68,7 +68,7 @@ $categories = $db->getList("categories");
     <?php } ?>
     
     <?php if (isset($category)) { ?>
-    <form method="POST" action="">
+    <form method="POST" action="?page=edit-category&id=<?= $category_id ?>">
         <label>Tên chuyên mục:</label>
         <input type="text" name="name" value="<?= $category['name'] ?>" required>
         
