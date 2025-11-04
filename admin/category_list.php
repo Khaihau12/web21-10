@@ -10,6 +10,10 @@ $categories = $db->getList("categories",);
 </div>
 
 <div class="content-body">
+    <?php if (isset($_GET['msg']) && $_GET['msg'] == "deleted") { ?>
+        <p class="success">✅ Xóa loại tin thành công!</p>
+    <?php } ?>
+    
     <a href="?page=add-category" class="btn btn-success">+ Thêm Chuyên Mục Mới</a>
     <br><br>
     
@@ -39,8 +43,4 @@ $categories = $db->getList("categories",);
             <?php } ?>
         </tbody>
     </table>
-    
-    <?php if (isset($_GET['msg']) && $_GET['msg'] == "success") { ?>
-        <p style="color: green; margin-top: 15px;">✓ Xóa loại tin thành công!</p>
-    <?php } ?>
 </div>
