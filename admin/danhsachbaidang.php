@@ -27,11 +27,11 @@ $result = $conn->query('SELECT a.article_id, a.title, c.name AS category_name FR
 <div class="content-body">
     <h1>Danh Sách Bài Đăng</h1>
     
-    <?php if (isset($message)): ?>
+    <?php if (isset($message)) { ?>
         <div class="<?php echo $message_type; ?>">
             <?php echo $message; ?>
         </div>
-    <?php endif; ?>
+    <?php } ?>
     
     <table>
         <thead>
@@ -43,19 +43,19 @@ $result = $conn->query('SELECT a.article_id, a.title, c.name AS category_name FR
             </tr>
         </thead>
         <tbody>
-        <?php while ($row = $result->fetch_assoc()): ?>
+        <?php while ($row = $result->fetch_assoc()) { ?>
             <tr>
                 <td><?php echo $row['article_id']; ?></td>
-                <td><?php echo htmlspecialchars($row['title']); ?></td>
-                <td><?php echo htmlspecialchars($row['category_name']); ?></td>
+                <td><?php echo $row['title']; ?></td>
+                <td><?php echo $row['category_name']; ?></td>
                 <td>
-                    <a href="chinhsua.php?id=<?php echo $row['article_id']; ?>" class="btn btn-success">Sửa</a>
+                    <a href="?page=edit-article&id=<?php echo $row['article_id']; ?>" class="btn btn-success">Sửa</a>
                     <a href="?page=articles&action=delete&id=<?php echo $row['article_id']; ?>" 
                        onclick="return confirm('Bạn có chắc muốn xóa bài viết này?');"
                        class="btn btn-danger">Xóa</a>
                 </td>
             </tr>
-        <?php endwhile; ?>
+        <?php } ?>
         </tbody>
     </table>
 </div>
