@@ -267,7 +267,7 @@ if (isset($_POST["logout"])) {
                     <ul>
                         <li><a href="index.php"><i class="fa fa-home"></i> Trang Chủ</a></li>
                         <?php foreach($danhMuc as $dm) { ?>
-                        <li><a href="category.php?id=<?php echo $dm['category_id']; ?>"><?php echo $dm['name']; ?></a></li>
+                        <li><a href="category.php?slug=<?php echo $dm['slug']; ?>"><?php echo $dm['name']; ?></a></li>
                         <?php } ?>
                     </ul>
                 </nav>
@@ -349,7 +349,7 @@ if (isset($_POST["logout"])) {
                                     <img src="<?php echo $bai['image_url']; ?>" alt="<?php echo $bai['title']; ?>">
                                     <div class="article-content">
                                         <h3>
-                                            <a href="article.php?id=<?php echo $bai['article_id']; ?>">
+                                            <a href="article.php?slug=<?php echo $bai['slug']; ?>">
                                                 <?php echo $bai['title']; ?>
                                             </a>
                                         </h3>
@@ -358,7 +358,7 @@ if (isset($_POST["logout"])) {
                                             <span>👁️ Đọc lúc: <?php echo date('d/m/Y H:i', strtotime($bai['viewed_at'])); ?></span>
                                         </div>
                                         <p><?php echo substr($bai['summary'], 0, 100); ?>...</p>
-                                        <a href="article.php?id=<?php echo $bai['article_id']; ?>" class="read-more">Đọc lại →</a>
+                                        <a href="article.php?slug=<?php echo $bai['slug']; ?>" class="read-more">Đọc lại →</a>
                                     </div>
                                 </div>
                                 <?php } ?>
@@ -378,7 +378,7 @@ if (isset($_POST["logout"])) {
                                     <img src="<?php echo $bai['image_url']; ?>" alt="<?php echo $bai['title']; ?>">
                                     <div class="article-content">
                                         <h3>
-                                            <a href="article.php?id=<?php echo $bai['article_id']; ?>">
+                                            <a href="article.php?slug=<?php echo $bai['slug']; ?>">
                                                 <?php echo $bai['title']; ?>
                                             </a>
                                         </h3>
@@ -387,7 +387,7 @@ if (isset($_POST["logout"])) {
                                             <span>❤️ Thích lúc: <?php echo date('d/m/Y H:i', strtotime($bai['liked_at'])); ?></span>
                                         </div>
                                         <p><?php echo substr($bai['summary'], 0, 100); ?>...</p>
-                                        <a href="article.php?id=<?php echo $bai['article_id']; ?>" class="read-more">Đọc tiếp →</a>
+                                        <a href="article.php?slug=<?php echo $bai['slug']; ?>" class="read-more">Đọc tiếp →</a>
                                     </div>
                                 </div>
                                 <?php } ?>
