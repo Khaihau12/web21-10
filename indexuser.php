@@ -4,13 +4,13 @@ require_once "dbuser.php";
 $db = new dbuser();
 
 // Kiểm tra đăng nhập
-if (!$db->kiemTraDangNhap()) {
+if (!$db->isLoggedIn()) {
     header("Location: loginuser.php");
     exit;
 }
 
 // Lấy thông tin user
-$currentUser = $db->layUserHienTai();
+$currentUser = $db->getCurrentUser();
 
 // Biến thông báo
 $message = '';
