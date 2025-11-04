@@ -3,15 +3,15 @@ session_start();
 require_once 'dbuser.php';
 $db = new dbuser();
 
-// Lấy category_id từ URL
-if (isset($_GET['id'])) {
-    $category_id = (int)$_GET['id'];
+// Lấy slug từ URL
+if (isset($_GET['slug'])) {
+    $category_slug = $_GET['slug'];
 } else {
-    $category_id = 0;
+    $category_slug = '';
 }
 
-// Lấy thông tin category
-$category = $db->layCategoryTheoId($category_id);
+// Lấy thông tin category theo slug
+$category = $db->layCategoryTheoSlug($category_slug);
 
 // Nếu không tìm thấy category, chuyển về trang chủ
 if (!$category) {
@@ -19,8 +19,8 @@ if (!$category) {
     exit;
 }
 
-// Lấy bài viết theo category
-$tinTuc = $db->layBaiVietTheoCategoryId($category_id, 20);
+// Lấy bài viết theo category slug
+$tinTuc = $db->layBaiVietTheoCategory($category_slug, 20);
 
 // Kiểm tra đăng nhập
 $isLoggedIn = $db->isLoggedIn();
@@ -79,13 +79,13 @@ $danhMuc = $db->layTatCaChuyenMuc();
                         <li><a href="index.php"><i class="fa fa-home"></i> Trang Chủ</a></li>
                         <?php foreach($danhMuc as $dm) { ?>
                         <?php
-                        if ($dm['category_id'] == $category_id) {
+                        if ($dm['slug'] == $category_slug) {
                             $class_active = 'class="active"';
                         } else {
                             $class_active = '';
                         }
                         ?>
-                        <li><a href="category.php?id=<?php echo $dm['category_id']; ?>" <?php echo $class_active; ?>><?php echo $dm['name']; ?></a></li>
+                        <li><a href="category.php?slug=<?php echo $dm['slug']; ?>" <?php echo $class_active; ?>><?php echo $dm['name']; ?></a></li>
                         <?php } ?>
                     </ul>
                 </nav>
@@ -105,7 +105,7 @@ $danhMuc = $db->layTatCaChuyenMuc();
                 <?php foreach($tinTuc as $tin) { ?>
                 <!-- Bài viết -->
                 <article class="list-news-item d-flex">
-                    <a href="article.php?id=<?php echo $tin['article_id']; ?>" class="list-news-img">
+                    <a href="article.php?slug=<?php echo $tin['slug']; ?>" class="list-news-img">
                         <?php if($tin['image_url']) { ?>
                             <img src="<?php echo $tin['image_url']; ?>" alt="<?php echo $tin['title']; ?>" class="img-fluid">
                         <?php } else { ?>
@@ -114,7 +114,7 @@ $danhMuc = $db->layTatCaChuyenMuc();
                     </a>
                     <div class="list-news-info">
                         <h3 class="list-news-title">
-                            <a href="article.php?id=<?php echo $tin['article_id']; ?>" class="fw-bold color-main hover-color-24h">
+                            <a href="article.php?slug=<?php echo $tin['slug']; ?>" class="fw-bold color-main hover-color-24h">
                                 <?php echo $tin['title']; ?>
                             </a>
                         </h3>
