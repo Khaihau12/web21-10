@@ -17,15 +17,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message_type = 'error';
     } else {
         // Kiểm tra đăng nhập
-        $userData = $db->dangNhap($username, $password);
+        $loginSuccess = $db->login($username, $password);
         
-        if ($userData) {
-            // Đăng nhập thành công - Lưu thông tin vào session
-            $_SESSION['user_id'] = $userData['user_id'];
-            $_SESSION['username'] = $userData['username'];
-            $_SESSION['display_name'] = $userData['display_name'];
-            $_SESSION['role'] = $userData['role'];
-            
+        if ($loginSuccess) {
+            // Đăng nhập thành công - Session đã được lưu trong phương thức login()
             // Chuyển về trang chủ
             header('Location: index.php');
             exit;
