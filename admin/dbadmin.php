@@ -60,12 +60,7 @@ class dbadmin {
     
     // Đăng xuất người dùng
     public function logout() {
-        // Xóa tất cả session của admin
-        unset($_SESSION['admin_logged_in']);
-        unset($_SESSION['admin_id']);
-        unset($_SESSION['admin_username']);
-        unset($_SESSION['admin_display_name']);
-        unset($_SESSION['admin_role']);
+        session_destroy();
         return true;
     }
 
