@@ -11,8 +11,8 @@ $tinSidebar = $db->layTatCaBaiViet(5); // Lấy 5 tin cho sidebar
 $danhMuc = $db->layTatCaChuyenMuc(); // Lấy tất cả danh mục
 
 // Kiểm tra đăng nhập
-$isLoggedIn = $db->kiemTraDangNhap();
-$currentUser = $isLoggedIn ? $db->layUserHienTai() : null;
+$isLoggedIn = $db->isLoggedIn();
+$currentUser = $isLoggedIn ? $db->getCurrentUser() : null;
 ?>
 <!DOCTYPE html>
 <html lang="vi">
