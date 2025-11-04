@@ -4,49 +4,25 @@
  * Câu 4: Thiết kế và xây dựng chức năng hiển thị danh sách loại tin
  */
 
+// Kiểm tra đăng nhập
+require_once 'check_login.php';
+
 require_once 'dbadmin.php';
 
 // Khởi tạo database
 $db = new dbadmin();
 
 ?>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Danh Sách Loại Tin</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        .tree-item {
-            padding: 10px;
-            margin: 10px 0;
-            background-color: #f9f9f9;
-            border-left: 3px solid #4CAF50;
-        }
-        .tree-children {
-            margin-left: 30px;
-        }
-        .tree-child {
-            padding: 8px;
-            margin: 5px 0;
-            background-color: white;
-            border-left: 3px solid #ddd;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Danh Sách Loại Tin</h1>
-        <p><i>Hiển thị danh sách các loại tin trong hệ thống</i></p>
-        
-        <hr>
-        
-        <!-- Bảng danh sách tất cả loại tin -->
-        <h2>Danh Sách Tất Cả Loại Tin</h2>
-        <p>Tổng số loại tin: <strong><?php echo $db->demSoLuongLoaiTin(); ?></strong></p>
-        
-        <table>
+
+<div class="content-header">
+    <h2>📋 Demo Danh Sách Loại Tin</h2>
+</div>
+
+<div class="content-body">
+    <h3>📊 Danh Sách Tất Cả Loại Tin</h3>
+    <p>Tổng số loại tin: <strong><?php echo $db->demSoLuongLoaiTin(); ?></strong></p>
+    
+    <table>
                         <thead>
                         <tr>
                             <th>ID</th>
@@ -85,10 +61,10 @@ $db = new dbadmin();
                     </tbody>
                 </table>
             
-            <hr>
+            <br><br>
             
             <!-- Cây phân cấp loại tin -->
-            <h2>Cây Phân Cấp Loại Tin</h2>
+            <h3>🌳 Cây Phân Cấp Loại Tin</h3>
             <div class="category-tree">
                 <?php
                 // Lấy các loại tin gốc (không có parent)
@@ -120,8 +96,21 @@ $db = new dbadmin();
                 ?>
             </div>
             
-            <hr>
-            <a href="index.php">← Quay lại trang chủ</a>
-        </div>
-    </body>
-</html>
+            <style>
+                .tree-item {
+                    padding: 10px;
+                    margin: 10px 0;
+                    background-color: #f9f9f9;
+                    border-left: 3px solid #4CAF50;
+                }
+                .tree-children {
+                    margin-left: 30px;
+                }
+                .tree-child {
+                    padding: 8px;
+                    margin: 5px 0;
+                    background-color: white;
+                    border-left: 3px solid #ddd;
+                }
+            </style>
+</div>
