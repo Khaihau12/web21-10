@@ -28,13 +28,13 @@ class dbuser {
     
     // Lấy bài viết mới nhất
     public function layBaiVietMoiNhat($limit = 10) {
-        $sql = "SELECT articles.article_id, articles.category_id, articles.title, articles.slug, 
-                articles.summary, articles.content, articles.image_url, articles.author_id, 
-                articles.is_featured, articles.created_at, 
-                categories.name as category_name, categories.slug as category_slug 
-                FROM articles 
-                LEFT JOIN categories ON articles.category_id = categories.category_id 
-                ORDER BY articles.created_at DESC 
+        $sql = "SELECT a.article_id, a.category_id, a.title, a.slug, 
+                a.summary, a.content, a.image_url, a.author_id, 
+                a.is_featured, a.created_at, 
+                c.name as category_name, c.slug as category_slug 
+                FROM articles AS a
+                JOIN categories AS c ON a.category_id = c.category_id 
+                ORDER BY a.created_at DESC 
                 LIMIT $limit";
         $result = $this->conn->query($sql);
         return $result->fetch_all(MYSQLI_ASSOC);
@@ -42,14 +42,14 @@ class dbuser {
     
     // Lấy bài viết nổi bật
     public function layBaiVietNoiBat($limit = 1) {
-        $sql = "SELECT articles.article_id, articles.category_id, articles.title, articles.slug, 
-                articles.summary, articles.content, articles.image_url, articles.author_id, 
-                articles.is_featured, articles.created_at, 
-                categories.name as category_name, categories.slug as category_slug 
-                FROM articles 
-                LEFT JOIN categories ON articles.category_id = categories.category_id 
-                WHERE articles.is_featured = 1
-                ORDER BY articles.created_at DESC 
+        $sql = "SELECT a.article_id, a.category_id, a.title, a.slug, 
+                a.summary, a.content, a.image_url, a.author_id, 
+                a.is_featured, a.created_at, 
+                c.name as category_name, c.slug as category_slug 
+                FROM articles AS a
+                JOIN categories AS c ON a.category_id = c.category_id 
+                WHERE a.is_featured = 1
+                ORDER BY a.created_at DESC 
                 LIMIT $limit";
         $result = $this->conn->query($sql);
         return $result->fetch_assoc();
@@ -57,14 +57,14 @@ class dbuser {
     
     // Lấy bài viết theo category
     public function layBaiVietTheoCategory($category_slug, $limit = 10) {
-        $sql = "SELECT articles.article_id, articles.category_id, articles.title, articles.slug, 
-                articles.summary, articles.content, articles.image_url, articles.author_id, 
-                articles.is_featured, articles.created_at, 
-                categories.name as category_name, categories.slug as category_slug 
-                FROM articles 
-                LEFT JOIN categories ON articles.category_id = categories.category_id 
-                WHERE categories.slug = '$category_slug'
-                ORDER BY articles.created_at DESC 
+        $sql = "SELECT a.article_id, a.category_id, a.title, a.slug, 
+                a.summary, a.content, a.image_url, a.author_id, 
+                a.is_featured, a.created_at, 
+                c.name as category_name, c.slug as category_slug 
+                FROM articles AS a
+                JOIN categories AS c ON a.category_id = c.category_id 
+                WHERE c.slug = '$category_slug'
+                ORDER BY a.created_at DESC 
                 LIMIT $limit";
         $result = $this->conn->query($sql);
         return $result->fetch_all(MYSQLI_ASSOC);
@@ -98,14 +98,14 @@ class dbuser {
     // Tìm kiếm bài viết
     public function timKiemBaiViet($keyword, $limit = 20) {
         $keyword = '%' . $keyword . '%';
-        $sql = "SELECT articles.article_id, articles.category_id, articles.title, articles.slug, 
-                articles.summary, articles.content, articles.image_url, articles.author_id, 
-                articles.is_featured, articles.created_at, 
-                categories.name as category_name, categories.slug as category_slug 
-                FROM articles 
-                LEFT JOIN categories ON articles.category_id = categories.category_id 
-                WHERE (articles.title LIKE '$keyword' OR articles.content LIKE '$keyword')
-                ORDER BY articles.created_at DESC 
+        $sql = "SELECT a.article_id, a.category_id, a.title, a.slug, 
+                a.summary, a.content, a.image_url, a.author_id, 
+                a.is_featured, a.created_at, 
+                c.name as category_name, c.slug as category_slug 
+                FROM articles AS a
+                JOIN categories AS c ON a.category_id = c.category_id 
+                WHERE (a.title LIKE '$keyword' OR a.content LIKE '$keyword')
+                ORDER BY a.created_at DESC 
                 LIMIT $limit";
         $result = $this->conn->query($sql);
         return $result->fetch_all(MYSQLI_ASSOC);
@@ -113,26 +113,26 @@ class dbuser {
 
     // Lấy chi tiết bài viết theo ID
     public function layChiTietBaiViet($article_id) {
-        $sql = "SELECT articles.article_id, articles.category_id, articles.title, articles.slug, 
-                articles.summary, articles.content, articles.image_url, articles.author_id, 
-                articles.is_featured, articles.created_at, 
-                categories.name as category_name, categories.slug as category_slug
-                FROM articles 
-                LEFT JOIN categories ON articles.category_id = categories.category_id 
-                WHERE articles.article_id = $article_id";
+        $sql = "SELECT a.article_id, a.category_id, a.title, a.slug, 
+                a.summary, a.content, a.image_url, a.author_id, 
+                a.is_featured, a.created_at, 
+                c.name as category_name, c.slug as category_slug
+                FROM articles AS a
+                JOIN categories AS c ON a.category_id = c.category_id 
+                WHERE a.article_id = $article_id";
         $result = $this->conn->query($sql);
         return $result->fetch_assoc();
     }
 
     // Lấy chi tiết bài viết theo SLUG (SEO-friendly)
     public function layChiTietBaiVietTheoSlug($article_slug) {
-        $sql = "SELECT articles.article_id, articles.category_id, articles.title, articles.slug, 
-                articles.summary, articles.content, articles.image_url, articles.author_id, 
-                articles.is_featured, articles.created_at, 
-                categories.name as category_name, categories.slug as category_slug
-                FROM articles 
-                LEFT JOIN categories ON articles.category_id = categories.category_id 
-                WHERE articles.slug = '$article_slug'";
+        $sql = "SELECT a.article_id, a.category_id, a.title, a.slug, 
+                a.summary, a.content, a.image_url, a.author_id, 
+                a.is_featured, a.created_at, 
+                c.name as category_name, c.slug as category_slug
+                FROM articles AS a
+                JOIN categories AS c ON a.category_id = c.category_id 
+                WHERE a.slug = '$article_slug'";
         $result = $this->conn->query($sql);
         return $result->fetch_assoc();
     }
@@ -345,8 +345,8 @@ class dbuser {
     // Lấy danh sách bình luận của bài viết
     public function layBinhLuan($article_id) {
         $sql = "SELECT c.*, u.username, u.display_name 
-                FROM comments c
-                JOIN users u ON c.user_id = u.user_id
+                FROM comments AS c
+                JOIN users AS u ON c.user_id = u.user_id
                 WHERE c.article_id = $article_id
                 ORDER BY c.created_at DESC";
         $result = $this->conn->query($sql);
@@ -438,9 +438,9 @@ class dbuser {
     // Lấy danh sách bài đã đọc gần đây
     public function layBaiDaDoc($user_id, $limit = 10) {
         $sql = "SELECT a.*, c.name as category_name, v.viewed_at 
-                FROM article_views v
-                JOIN articles a ON v.article_id = a.article_id
-                LEFT JOIN categories c ON a.category_id = c.category_id
+                FROM article_views AS v
+                JOIN articles AS a ON v.article_id = a.article_id
+                LEFT JOIN categories AS c ON a.category_id = c.category_id
                 WHERE v.user_id = $user_id
                 ORDER BY v.viewed_at DESC
                 LIMIT $limit";
@@ -451,9 +451,9 @@ class dbuser {
     // Lấy danh sách bài yêu thích
     public function layBaiYeuThich($user_id, $limit = 10) {
         $sql = "SELECT a.*, c.name as category_name, l.created_at as liked_at
-                FROM article_likes l
-                JOIN articles a ON l.article_id = a.article_id
-                LEFT JOIN categories c ON a.category_id = c.category_id
+                FROM article_likes AS l
+                JOIN articles AS a ON l.article_id = a.article_id
+                LEFT JOIN categories AS c ON a.category_id = c.category_id
                 WHERE l.user_id = $user_id
                 ORDER BY l.created_at DESC
                 LIMIT $limit";
