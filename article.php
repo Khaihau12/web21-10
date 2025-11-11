@@ -1,25 +1,30 @@
 <?php
+// =============================================================================
+// FILE: article.php - TRANG CHI TIẾT BÀI VIẾT
+// =============================================================================
+
+// 1. Khởi tạo
 session_start();
 require_once 'dbuser.php';
 $db = new dbuser();
 
-// Lấy slug từ URL
+// 2. Lấy slug từ URL (ví dụ: article.php?slug=ronaldo-ghi-ban)
 if (isset($_GET['slug'])) {
     $article_slug = $_GET['slug'];
 } else {
     $article_slug = '';
 }
 
-// Lấy chi tiết bài viết theo slug
+// 3. Lấy chi tiết bài viết từ database theo slug
 $article = $db->layChiTietBaiVietTheoSlug($article_slug);
 
-// Nếu không tìm thấy bài viết, chuyển về trang chủ
+// 4. Kiểm tra: Nếu không tìm thấy bài viết → Quay về trang chủ
 if (!$article) {
     header('Location: index.php');
     exit;
 }
 
-// Kiểm tra đăng nhập
+// 5. Kiểm tra trạng thái đăng nhập
 $isLoggedIn = $db->isLoggedIn();
 if ($isLoggedIn) {
     $currentUser = $db->getCurrentUser();
@@ -27,25 +32,29 @@ if ($isLoggedIn) {
     $currentUser = null;
 }
 
-// Lấy article_id từ bài viết (dùng cho các chức năng like, comment...)
+// 6. Lấy thông tin cần thiết từ bài viết
 $article_id = $article['article_id'];
 $article_slug = $article['slug'];
 
-// Xử lý thích bài viết
+// =============================================================================
+// XỬ LÝ CÁC HÀNH ĐỘNG (POST REQUEST)
+// =============================================================================
+
+// 7. Xử lý THÍCH bài viết
 if ($isLoggedIn && isset($_POST['like_toggle'])) {
     $db->toggleThichBaiViet($currentUser['user_id'], $article_id);
     header("Location: article.php?slug=$article_slug");
     exit;
 }
 
-// Xử lý lưu bài viết
+// 8. Xử lý LƯU bài viết
 if ($isLoggedIn && isset($_POST['save_toggle'])) {
     $db->toggleLuuBaiViet($currentUser['user_id'], $article_id);
     header("Location: article.php?slug=$article_slug");
     exit;
 }
 
-// Xử lý thêm bình luận
+// 9. Xử lý THÊM bình luận
 if ($isLoggedIn && isset($_POST['add_comment'])) {
     $content = trim($_POST['comment_content']);
     if (!empty($content)) {
@@ -55,7 +64,7 @@ if ($isLoggedIn && isset($_POST['add_comment'])) {
     }
 }
 
-// Xử lý xóa bình luận
+// 10. Xử lý XÓA bình luận
 if ($isLoggedIn && isset($_POST['delete_comment'])) {
     $comment_id = (int)$_POST['comment_id'];
     $db->xoaBinhLuan($comment_id, $currentUser['user_id']);
@@ -63,7 +72,7 @@ if ($isLoggedIn && isset($_POST['delete_comment'])) {
     exit;
 }
 
-// Xử lý sửa bình luận
+// 11. Xử lý SỬA bình luận
 if ($isLoggedIn && isset($_POST['edit_comment'])) {
     $comment_id = (int)$_POST['comment_id'];
     $content = trim($_POST['comment_content']);
@@ -74,7 +83,11 @@ if ($isLoggedIn && isset($_POST['edit_comment'])) {
     }
 }
 
-// Lấy comment_id nếu đang edit
+// =============================================================================
+// LẤY DỮ LIỆU ĐỂ HIỂN THỊ
+// =============================================================================
+
+// 12. Lấy comment đang chỉnh sửa (nếu có)
 if (isset($_GET['edit'])) {
     $editingCommentId = (int)$_GET['edit'];
 } else {
@@ -90,38 +103,36 @@ if ($editingCommentId && $isLoggedIn) {
     }
 }
 
-// Lưu lượt xem bài viết (chỉ khi đã đăng nhập)
+// 13. Lưu lượt xem (chỉ khi đã đăng nhập)
 if ($isLoggedIn) {
     $db->luuLuotXem($currentUser['user_id'], $article_id);
 }
 
-// Đếm lượt thích, lưu và xem từ database
+// 14. Đếm số liệu thống kê
 $luotThich = $db->demLuotThich($article_id);
 $luotLuu = $db->demLuotLuu($article_id);
-$luotXem = $db->demLuotXemBaiViet($article_id); // Đếm theo database
+$luotXem = $db->demLuotXemBaiViet($article_id);
 
-// Kiểm tra user đã thích/lưu chưa
+// 15. Kiểm tra user đã thích/lưu bài viết chưa
 if ($isLoggedIn) {
     $daThich = $db->daThichBaiViet($currentUser['user_id'], $article_id);
-} else {
-    $daThich = false;
-}
-
-if ($isLoggedIn) {
     $daLuu = $db->daLuuBaiViet($currentUser['user_id'], $article_id);
 } else {
+    $daThich = false;
     $daLuu = false;
 }
 
-// Lấy bình luận
+// 16. Lấy danh sách bình luận
 $binhLuan = $db->layBinhLuan($article_id);
 $soBinhLuan = $db->demBinhLuan($article_id);
 
-// Lấy danh mục cho menu
+// 17. Lấy dữ liệu cho menu và sidebar
 $danhMuc = $db->layTatCaChuyenMuc();
-
-// Lấy tin sidebar
 $tinSidebar = $db->layBaiVietMoiNhat(5);
+
+// =============================================================================
+// PHẦN HIỂN THỊ HTML
+// =============================================================================
 ?>
 <!DOCTYPE html>
 <html lang="vi">
