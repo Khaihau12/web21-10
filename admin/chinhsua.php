@@ -190,14 +190,18 @@ $categories = $db->layDanhSachChuyenMuc();
         <label>Ảnh đại diện</label>
         <?php if (!empty($article['image_url'])) { ?>
             <div style="margin-bottom: 10px;">
-                <img src="../<?php echo $article['image_url']; ?>" 
+                <img src="<?php echo $article['image_url']; ?>" 
                      alt="Current image" 
                      style="max-width: 200px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
                 <p style="font-size:12px; color:#666;">Ảnh hiện tại</p>
             </div>
         <?php } ?>
-        <input type="file" name="image" accept="image/jpeg,image/png,image/gif,image/jpg">
+        <input type="file" name="image" id="image_upload" accept="image/jpeg,image/png,image/gif,image/jpg" 
+               onchange="document.getElementById('preview_img').src = window.URL.createObjectURL(this.files[0]); document.getElementById('preview_img').style.display = 'block';">
         <p style="font-size:12px; color:#999;">Chọn ảnh mới để thay thế (JPG, PNG, GIF - tối đa 5MB)</p>
+        
+        <!-- Preview ảnh mới -->
+        <img id="preview_img" src="" alt="" style="display:none; max-width: 300px; margin-top: 10px; border: 1px solid #ddd; padding: 5px;">
         
         <!-- Tin nổi bật -->
         <label>
