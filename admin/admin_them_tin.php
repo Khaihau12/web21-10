@@ -61,12 +61,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $title = '';
         }
         
-        if (isset($_POST['slug'])) {
-            $slug = trim($_POST['slug']);
-        } else {
-            $slug = '';
-        }
-        
         if (isset($_POST['summary'])) {
             $summary = trim($_POST['summary']);
         } else {
@@ -94,7 +88,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = [
             'category_id' => $category_id,
             'title' => $title,
-            'slug' => $slug,
             'summary' => $summary,
             'content' => $content,
             'image_url' => $image_url,
@@ -165,12 +158,7 @@ $categories = $db->layDanhSachChuyenMuc();
         <label>Tiêu đề <span style="color:red;">*</span></label>
         <input type="text" name="title" placeholder="Nhập tiêu đề bài viết..." 
                value="<?php if(isset($_POST['title'])) { echo $_POST['title']; } ?>" required>
-        
-        <!-- Slug -->
-        <label>Slug (URL thân thiện)</label>
-        <input type="text" name="slug" placeholder="vi-du: bai-viet-mau-so-1"
-               value="<?php if(isset($_POST['slug'])) { echo $_POST['slug']; } ?>">
-        <p style="font-size:12px; color:#999;">Để trống để tự động tạo từ tiêu đề</p>
+        <p style="font-size:12px; color:#999;">Slug sẽ tự động tạo từ tiêu đề</p>
         
         <!-- Tóm tắt -->
         <label>Tóm tắt</label>
