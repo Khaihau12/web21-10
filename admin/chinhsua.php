@@ -7,22 +7,19 @@
 // Khởi tạo database
 $conn = $db->getConnection();
 
-// Lấy article_id từ URL
-if (isset($_GET['id'])) {
-    $article_id = (int)$_GET['id'];
+// Lấy slug từ URL
+if (isset($_GET['slug'])) {
+    $article_slug = $_GET['slug'];
 } else {
-    $article_id = 0;
+    $article_slug = '';
 }
 
-if ($article_id <= 0) {
-    die('ID bài báo không hợp lệ');
+if (empty($article_slug)) {
+    die('Slug bài báo không hợp lệ');
 }
 
-// Lấy thông tin bài báo trước
-$stmt = $conn->prepare('SELECT * FROM articles WHERE article_id=?');
-$stmt->bind_param('i', $article_id);
-$stmt->execute();
-$article = $stmt->get_result()->fetch_assoc();
+// Lấy thông tin bài báo bằng phương thức
+$article = $db->layBaiVietTheoSlug($article_slug);
 if (!$article) {
     die('Không tìm thấy bài báo');
 }
@@ -80,12 +77,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $title = '';
         }
         
-        if (isset($_POST['slug'])) {
-            $slug = trim($_POST['slug']);
-        } else {
-            $slug = '';
-        }
-        
         if (isset($_POST['summary'])) {
             $summary = trim($_POST['summary']);
         } else {
@@ -112,29 +103,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = 'Vui lòng nhập tiêu đề!';
             $message_type = 'error';
         } else {
-            // Tạo slug nếu để trống
-            if ($slug === '') {
-                $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $title));
-            }
+            // Chuẩn bị dữ liệu
+            $data = [
+                'category_id' => $category_id,
+                'title' => $title,
+                'summary' => $summary,
+                'content' => $content,
+                'image_url' => $image_url,
+                'is_featured' => $is_featured
+            ];
             
-            // Cập nhật bài viết
-            $stmt = $conn->prepare("UPDATE articles SET category_id=?, title=?, slug=?, summary=?, content=?, image_url=?, is_featured=? WHERE article_id=?");
-            $stmt->bind_param('isssssii', $category_id, $title, $slug, $summary, $content, $image_url, $is_featured, $article_id);
-            
-            if ($stmt->execute()) {
+            // Gọi phương thức suaBaiViet
+            if ($db->suaBaiViet($article_slug, $data)) {
                 $message = '✅ Cập nhật bài viết thành công!';
                 $message_type = 'success';
                 
-                // Cập nhật lại biến $article để hiển thị data mới
-                $article['category_id'] = $category_id;
-                $article['title'] = $title;
-                $article['slug'] = $slug;
-                $article['summary'] = $summary;
-                $article['content'] = $content;
-                $article['image_url'] = $image_url;
-                $article['is_featured'] = $is_featured;
+                // Lấy slug mới từ title
+                $new_slug = $db->createSlug($title);
+                
+                // Lấy lại thông tin sau khi sửa
+                $article = $db->layBaiVietTheoSlug($new_slug);
+                if ($article) {
+                    $article_slug = $new_slug;
+                }
             } else {
-                $message = 'Lỗi khi cập nhật: ' . $stmt->error;
+                $message = 'Lỗi khi cập nhật bài viết!';
                 $message_type = 'error';
             }
         }
@@ -147,7 +140,7 @@ $categories = $db->layDanhSachChuyenMuc();
 
 <div class="content-header">
     <h2>✏️ Chỉnh Sửa Bài Viết</h2>
-    <p><i>Cập nhật thông tin bài viết #<?php echo $article_id; ?></i></p>
+    <p><i>Cập nhật bài viết: <?= $article['title']; ?></i></p>
 </div>
 
 <div class="content-body">
@@ -181,12 +174,7 @@ $categories = $db->layDanhSachChuyenMuc();
         <label>Tiêu đề <span style="color:red;">*</span></label>
         <input type="text" name="title" placeholder="Nhập tiêu đề bài viết..." 
                value="<?php echo $article['title']; ?>" required>
-        
-        <!-- Slug -->
-        <label>Slug (URL thân thiện)</label>
-        <input type="text" name="slug" placeholder="vi-du: bai-viet-mau-so-1"
-               value="<?php echo $article['slug']; ?>">
-        <p style="font-size:12px; color:#999;">Để trống để tự động tạo từ tiêu đề</p>
+        <p style="font-size:12px; color:#999;">💡 Slug sẽ tự động tạo từ tiêu đề</p>
         
         <!-- Tóm tắt -->
         <label>Tóm tắt</label>
