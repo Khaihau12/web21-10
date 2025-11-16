@@ -27,9 +27,17 @@ class dbadmin {
     }
     
     // =======================================================================
-    // TÍNH NĂNG: ĐĂNG NHẬP ADMIN 
+    // CHỨC NĂNG: XÁC THỰC VÀ QUẢN LÝ PHIÊN ĐĂNG NHẬP
+    // Bao gồm: Đăng nhập, Đăng xuất, Kiểm tra trạng thái đăng nhập
+    // Phương thức: login(), logout(), isLoggedIn(), getCurrentUser()
     // =======================================================================
     
+    /**
+     * Đăng nhập quản trị viên
+     * @param string $username - Tên đăng nhập
+     * @param string $password - Mật khẩu (chưa mã hóa)
+     * @return bool - True nếu đăng nhập thành công, False nếu thất bại
+     */
     public function login($username, $password) {
         // Mã hóa password bằng MD5
         $password_md5 = md5($password);
@@ -58,13 +66,21 @@ class dbadmin {
         return false; // Không tìm thấy tài khoản khớp hoặc không phải admin/editor
     }
     
-    // Đăng xuất người dùng
+    /**
+     * Đăng xuất quản trị viên
+     * Xóa toàn bộ Session để kết thúc phiên làm việc
+     * @return bool - Luôn trả về true
+     */
     public function logout() {
         session_destroy();
         return true;
     }
 
-    // Kiểm tra đã đăng nhập hay chưa (phải là admin hoặc editor)
+    /**
+     * Kiểm tra trạng thái đăng nhập
+     * Xác minh xem người dùng hiện tại có phải quản trị viên hợp lệ không
+     * @return bool - True nếu đã đăng nhập với quyền Admin/Editor, False nếu chưa
+     */
     public function isLoggedIn() {
         // Kiểm tra có session admin_logged_in và role phải là admin hoặc editor
         if (isset($_SESSION['admin_logged_in']) && isset($_SESSION['admin_role'])) {
@@ -75,7 +91,10 @@ class dbadmin {
         return false;
     }
     
-    // Lấy thông tin user hiện tại
+    /**
+     * Lấy thông tin quản trị viên hiện tại
+     * @return array|null - Mảng thông tin user nếu đã đăng nhập, null nếu chưa
+     */
     public function getCurrentUser() {
         if ($this->isLoggedIn()) {
             return [
@@ -89,11 +108,155 @@ class dbadmin {
     }
     
     // =======================================================================
-    // TÍNH NĂNG: HIỂN THỊ DANH SÁCH LOẠI TIN
+    // CHỨC NĂNG: QUẢN LÝ CHUYÊN MỤC (CATEGORIES)
+    // Bao gồm: Thêm, Sửa, Xóa, Lấy danh sách chuyên mục
+    // Phương thức: layDanhSachChuyenMuc(), themChuyenMuc(), layChuyenMucTheoSlug(),
+    //              suaChuyenMuc(), deleteBySlug(), createSlug()
+    // Lưu ý: Tất cả thao tác dùng SLUG thay vì ID để đồng bộ với frontend
     // =======================================================================
     
     /**
-     * Lấy danh sách bài viết mới nhất
+     * Lấy danh sách tất cả chuyên mục (dùng cho dropdown khi thêm bài viết)
+     * @return array - Mảng các chuyên mục sắp xếp theo tên
+     */
+    public function layDanhSachChuyenMuc() {
+        $sql = "SELECT * FROM categories ORDER BY name ASC";
+        $result = $this->conn->query($sql);
+        
+        $categories = [];
+        while ($row = $result->fetch_assoc()) {
+            $categories[] = $row;
+        }
+        
+        return $categories;
+    }
+    
+    /**
+     * Thêm chuyên mục mới
+     * @param string $name - Tên chuyên mục
+     * @param int|null $parent_id - ID chuyên mục cha (null nếu là chuyên mục gốc)
+     * @return bool|string - True nếu thành công, thông báo lỗi nếu thất bại
+     */
+    public function themChuyenMuc($name, $parent_id) {
+        // Tự động tạo slug từ name
+        $slug = $this->createSlug($name);
+        
+        // Kiểm tra slug đã tồn tại chưa
+        $check_sql = "SELECT category_id FROM categories WHERE slug = '$slug'";
+        $check_result = $this->conn->query($check_sql);
+        if ($check_result->num_rows > 0) {
+            return "Chuyên mục này đã được tạo rồi!";
+        }
+        
+        // Nếu parent_id rỗng thì set null
+        $parent_id_value = empty($parent_id) ? "NULL" : $parent_id;
+        
+        // Thêm vào database
+        $sql = "INSERT INTO categories (name, slug, parent_id) VALUES ('$name', '$slug', $parent_id_value)";
+        $result = $this->conn->query($sql);
+        
+        if ($result) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    /**
+     * Lấy thông tin một chuyên mục theo SLUG
+     * @param string $category_slug - Slug chuyên mục
+     * @return array|bool - Mảng thông tin chuyên mục hoặc false nếu không tìm thấy
+     */
+    public function layChuyenMucTheoSlug($category_slug) {
+        $sql = "SELECT * FROM categories WHERE slug = '$category_slug'";
+        $result = $this->conn->query($sql);
+        
+        if ($result && $result->num_rows > 0) {
+            return $result->fetch_assoc();
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Sửa thông tin chuyên mục theo SLUG
+     * @param string $old_slug - Slug chuyên mục cần sửa
+     * @param string $name - Tên chuyên mục mới
+     * @param int|null $parent_id - ID chuyên mục cha
+     * @return bool|string - True nếu thành công, thông báo lỗi nếu thất bại
+     */
+    public function suaChuyenMuc($old_slug, $name, $parent_id) {
+        // Tự động tạo slug mới từ name mới
+        $new_slug = $this->createSlug($name);
+        
+        // Kiểm tra nếu slug mới khác slug cũ thì kiểm tra trùng
+        if ($new_slug !== $old_slug) {
+            $check_sql = "SELECT category_id FROM categories WHERE slug = '$new_slug'";
+            $check_result = $this->conn->query($check_sql);
+            if ($check_result->num_rows > 0) {
+                return "Chuyên mục này đã được tạo rồi!";
+            }
+        }
+        
+        // Nếu parent_id rỗng thì set null
+        $parent_id_value = empty($parent_id) ? "NULL" : $parent_id;
+        
+        // Cập nhật vào database
+        $sql = "UPDATE categories SET name = '$name', slug = '$new_slug', parent_id = $parent_id_value WHERE slug = '$old_slug'";
+        $result = $this->conn->query($sql);
+        
+        if ($result) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    /**
+     * Xóa chuyên mục theo SLUG
+     * @param string $category_slug - Slug của chuyên mục cần xóa
+     * @return bool - True nếu xóa thành công, False nếu thất bại
+     */
+    public function deleteBySlug($category_slug) {
+        $sql = "DELETE FROM categories WHERE slug = '$category_slug'";
+        $result = $this->conn->query($sql);
+        
+        if ($result) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    /**
+     * Tạo slug (đường dẫn thân thiện) từ chuỗi tiếng Việt
+     * @param string $str - Chuỗi gốc
+     * @return string - Slug không dấu, chữ thường, ngăn cách bằng dấu gạch ngang
+     */
+    public function createSlug($str) {
+        $str = trim(mb_strtolower($str));
+        $str = preg_replace('/(à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ)/', 'a', $str);
+        $str = preg_replace('/(è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ)/', 'e', $str);
+        $str = preg_replace('/(ì|í|ị|ỉ|ĩ)/', 'i', $str);
+        $str = preg_replace('/(ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ)/', 'o', $str);
+        $str = preg_replace('/(ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ)/', 'u', $str);
+        $str = preg_replace('/(ỳ|ý|ỵ|ỷ|ỹ)/', 'y', $str);
+        $str = preg_replace('/(đ)/', 'd', $str);
+        $str = preg_replace('/[^a-z0-9-\s]/', '', $str);
+        $str = preg_replace('/([\s]+)/', '-', $str);
+        return $str;
+    }
+    
+    // =======================================================================
+    // CHỨC NĂNG: QUẢN LÝ BÀI VIẾT (ARTICLES)
+    // Bao gồm: Thêm, Sửa, Xóa, Lấy thông tin bài viết
+    // Phương thức: themBaiViet(), layBaiVietTheoSlug(), suaBaiViet(),
+    //              xoaBaiVietTheoSlug(), layBaiVietMoiNhat()
+    // Lưu ý: Slug bài viết tự động tạo từ title bằng createSlug()
+    // =======================================================================
+    
+    /**
+     * Lấy danh sách bài viết mới nhất (dùng cho Dashboard)
      * @param int $limit - Số lượng bài viết cần lấy (mặc định 10)
      * @return array|bool - Mảng danh sách bài viết hoặc false nếu lỗi
      */
@@ -119,8 +282,15 @@ class dbadmin {
         return $danhSach;
     }
     
+    // =======================================================================
+    // CHỨC NĂNG PHỤ: PHƯƠNG THỨC DEMO (chỉ dùng trong demo_danh_sach_loai_tin.php)
+    // Bao gồm: Hiển thị phân cấp, đếm số lượng
+    // Phương thức: hienThiDanhSachLoaiTin(), hienThiDanhSachLoaiTinTheoParent(),
+    //              layThongTinLoaiTin(), demSoLuongLoaiTin()
+    // =======================================================================
+    
     /**
-     * Hiển thị danh sách tất cả loại tin
+     * Hiển thị danh sách tất cả loại tin (chỉ dùng cho DEMO)
      * @return array|bool - Mảng danh sách loại tin hoặc false nếu lỗi
      */
     public function hienThiDanhSachLoaiTin() {
@@ -171,12 +341,12 @@ class dbadmin {
     }
     
     /**
-     * Lấy thông tin chi tiết một loại tin theo ID
-     * @param int $category_id - ID của loại tin
+     * Lấy thông tin chi tiết một loại tin theo SLUG
+     * @param string $category_slug - Slug của loại tin
      * @return array|bool - Mảng thông tin loại tin hoặc false nếu không tìm thấy
      */
-    public function layThongTinLoaiTin($category_id) {
-        $sql = "SELECT category_id, name, slug, parent_id FROM categories WHERE category_id = $category_id";
+    public function layThongTinLoaiTin($category_slug) {
+        $sql = "SELECT category_id, name, slug, parent_id FROM categories WHERE slug = '$category_slug'";
         
         $result = $this->conn->query($sql);
         
@@ -209,203 +379,11 @@ class dbadmin {
     }
     
     // =======================================================================
-    // TÍNH NĂNG: THÊM CATEGORY
-    // =======================================================================
-    
-    public function themChuyenMuc($name, $slug, $parent_id) {
-        // Nếu không có slug thì tạo từ name
-        if (empty($slug)) {
-            $slug = $this->createSlug($name);
-        } else {
-            $slug = $this->createSlug($slug);
-        }
-        
-        // Nếu parent_id rỗng thì set null
-        if (empty($parent_id)) {
-            $parent_id_value = "NULL";
-        } else {
-            $parent_id_value = $parent_id;
-        }
-        
-        // Thêm vào database
-        $sql = "INSERT INTO categories (name, slug, parent_id) VALUES ('$name', '$slug', $parent_id_value)";
-        $result = $this->conn->query($sql);
-        
-        if ($result) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-    
-    /**
-     * Lấy thông tin một chuyên mục theo ID
-     * @param int $category_id - ID chuyên mục
-     * @return array|bool - Mảng thông tin chuyên mục hoặc false nếu không tìm thấy
-     */
-    public function layChuyenMucTheoId($category_id) {
-        $sql = "SELECT * FROM categories WHERE category_id = $category_id";
-        $result = $this->conn->query($sql);
-        
-        if ($result && $result->num_rows > 0) {
-            return $result->fetch_assoc();
-        }
-        
-        return false;
-    }
-    
-    /**
-     * Sửa thông tin chuyên mục
-     * @param int $category_id - ID chuyên mục cần sửa
-     * @param string $name - Tên chuyên mục mới
-     * @param string $slug - Slug mới
-     * @param int|null $parent_id - ID chuyên mục cha
-     * @return bool - Thành công hay thất bại
-     */
-    public function suaChuyenMuc($category_id, $name, $slug, $parent_id) {
-        // Nếu không có slug thì tạo từ name
-        if (empty($slug)) {
-            $slug = $this->createSlug($name);
-        } else {
-            $slug = $this->createSlug($slug);
-        }
-        
-        // Nếu parent_id rỗng thì set null
-        if (empty($parent_id)) {
-            $parent_id_value = "NULL";
-        } else {
-            $parent_id_value = $parent_id;
-        }
-        
-        // Cập nhật vào database
-        $sql = "UPDATE categories SET name = '$name', slug = '$slug', parent_id = $parent_id_value WHERE category_id = $category_id";
-        $result = $this->conn->query($sql);
-        
-        if ($result) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-    
-    // =======================================================================
-    // TÍNH NĂNG: XÓA CATEGORY
-    // =======================================================================
-    
-    public function getList($table) {
-        $result = $this->conn->query("SELECT * FROM `$table`");
-        $data = [];
-        while ($row = $result->fetch_assoc()) {
-            $data[] = $row;
-        }
-        return $data;
-    }
-    
-    public function delete($table, $where) {
-        $where_clause = [];
-        foreach ($where as $key => $val) {
-            $where_clause[] = "`$key` = '$val'";
-        }
-        $sql = "DELETE FROM `$table` WHERE " . implode(" AND ", $where_clause);
-        $result = $this->conn->query($sql);
-        
-        if ($result) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-    
-    // =======================================================================
-    // TÍNH NĂNG: SỬA TIN (CẬP NHẬT CHUYÊN MỤC)
-    // =======================================================================
-    
-    // Cập nhật thông tin chuyên mục
-    public function update($category_id, $data) {
-        // Validate input
-        if (empty($data['name'])) {
-            return ['success' => false, 'message' => 'Tên chuyên mục không được trống'];
-        }
-        
-        // Generate slug if not provided
-        if (isset($data['slug']) && !empty($data['slug'])) {
-            $slug = $this->createSlug($data['slug']);
-        } else {
-            $slug = $this->createSlug($data['name']);
-        }
-            
-        // Check if new parent would create a cycle
-        if (!empty($data['parent_id']) && !$this->isValidParent($category_id, $data['parent_id'])) {
-            return ['success' => false, 'message' => 'Không thể chọn chuyên mục con làm chuyên mục cha'];
-        }
-        
-        // Chuẩn bị parent_id
-        if (empty($data['parent_id'])) {
-            $parent_id_value = "NULL";
-        } else {
-            $parent_id_value = $data['parent_id'];
-        }
-        
-        // Update category
-        $sql = "UPDATE categories SET name = '$data[name]', slug = '$slug', parent_id = $parent_id_value WHERE category_id = $category_id";
-        
-        if ($this->conn->query($sql)) {
-            return ['success' => true, 'message' => 'Cập nhật chuyên mục thành công'];
-        } else {
-            return ['success' => false, 'message' => 'Lỗi khi cập nhật: ' . $this->conn->error];
-        }
-    }
-
-    // Helper method to create slug
-    private function createSlug($str) {
-        $str = trim(mb_strtolower($str));
-        $str = preg_replace('/(à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ)/', 'a', $str);
-        $str = preg_replace('/(è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ)/', 'e', $str);
-        $str = preg_replace('/(ì|í|ị|ỉ|ĩ)/', 'i', $str);
-        $str = preg_replace('/(ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ)/', 'o', $str);
-        $str = preg_replace('/(ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ)/', 'u', $str);
-        $str = preg_replace('/(ỳ|ý|ỵ|ỷ|ỹ)/', 'y', $str);
-        $str = preg_replace('/(đ)/', 'd', $str);
-        $str = preg_replace('/[^a-z0-9-\s]/', '', $str);
-        $str = preg_replace('/([\s]+)/', '-', $str);
-        return $str;
-    }
-
-    // Helper method to check valid parent
-    private function isValidParent($category_id, $parent_id) {
-        // Cannot set itself as parent
-        if ($category_id == $parent_id) {
-            return false;
-        }
-        
-        // Get all children of the category
-        $sql = "
-            WITH RECURSIVE category_tree AS (
-                SELECT category_id, parent_id
-                FROM categories
-                WHERE category_id = $category_id
-                UNION ALL
-                SELECT c.category_id, c.parent_id
-                FROM categories c
-                INNER JOIN category_tree ct ON c.parent_id = ct.category_id
-            )
-            SELECT category_id FROM category_tree
-        ";
-        
-        $result = $this->conn->query($sql);
-        
-        // Check if proposed parent is not among children
-        while ($row = $result->fetch_assoc()) {
-            if ($row['category_id'] == $parent_id) {
-                return false;
-            }
-        }
-        
-        return true;
-    }
-    
-    // =======================================================================
-    // TÍNH NĂNG: THÊM TIN
+    // CHỨC NĂNG: QUẢN LÝ BÀI VIẾT (ARTICLES)
+    // Bao gồm: Thêm, Sửa, Xóa, Lấy thông tin bài viết
+    // Phương thức: themBaiViet(), layBaiVietTheoSlug(), suaBaiViet(),
+    //              xoaBaiVietTheoSlug(), layBaiVietMoiNhat()
+    // Lưu ý: Slug bài viết tự động tạo từ title bằng createSlug()
     // =======================================================================
     
     /**
@@ -423,12 +401,8 @@ class dbadmin {
         $category_id = (int)$data['category_id'];
         $title = $data['title'];
         
-        // Tạo slug
-        if (!empty($data['slug'])) {
-            $slug = $data['slug'];
-        } else {
-            $slug = $this->taoSlug($title);
-        }
+        // Tự động tạo slug từ title
+        $slug = $this->createSlug($title);
         
         if (isset($data['summary'])) {
             $summary = $data['summary'];
@@ -472,93 +446,72 @@ class dbadmin {
         }
     }
     
-
     /**
-     * Lấy danh sách chuyên mục
-     * @return array - Mảng các chuyên mục
+     * Lấy thông tin bài viết theo SLUG
+     * @param string $article_slug - Slug của bài viết
+     * @return array|bool - Mảng thông tin bài viết hoặc false nếu không tìm thấy
      */
-    public function layDanhSachChuyenMuc() {
-        $sql = "SELECT * FROM categories ORDER BY name ASC";
+    public function layBaiVietTheoSlug($article_slug) {
+        $sql = "SELECT * FROM articles WHERE slug = '$article_slug'";
         $result = $this->conn->query($sql);
         
-        $categories = [];
-        while ($row = $result->fetch_assoc()) {
-            $categories[] = $row;
+        if ($result && $result->num_rows > 0) {
+            return $result->fetch_assoc();
         }
         
-        return $categories;
+        return false;
     }
-    
-    //Loại bỏ ký tự có dấu tiếng Việt
-    private function stripUnicode($str) {
-        if (!$str) return false;
-        
-        $unicode = array (
-            'a'=>'á|à|ả|ã|ạ|ă|ắ|ằ|ẳ|ẵ|ặ|â|ấ|ầ|ẩ|ẫ|ậ', 
-            'A'=>'Á|À|Ả|Ã|Ạ|Ă|Ắ|Ằ|Ẳ|Ẵ|Ặ|Â|Ấ|Ầ|Ẩ|Ẫ|Ậ', 
-            'd'=>'đ',
-            'D'=>'Đ', 
-            'e'=>'é|è|ẻ|ẽ|ẹ|ê|ế|ề|ể|ễ|ệ', 
-            'E'=>'É|È|Ẻ|Ẽ|Ẹ|Ê|Ế|Ề|Ể|Ễ|Ệ', 
-            'i'=>'í|ì|ỉ|ĩ|ị', 
-            'I'=>'Í|Ì|Ỉ|Ĩ|Ị', 
-            'o'=>'ó|ò|ỏ|õ|ọ|ô|ố|ồ|ổ|ỗ|ộ|ơ|ớ|ờ|ở|ỡ|ợ',
-            'O'=>'Ó|Ò|Ỏ|Õ|Ọ|Ô|Ố|Ồ|Ổ|Ỗ|Ộ|Ơ|Ớ|Ờ|Ở|Ỡ|Ợ', 
-            'u'=>'ú|ù|ủ|ũ|ụ|ư|ứ|ừ|ử|ữ|ự', 
-            'U'=>'Ú|Ù|Ủ|Ũ|Ụ|Ư|Ứ|Ừ|Ử|Ữ|Ự', 
-            'y'=>'ý|ỳ|ỷ|ỹ|ỵ', 
-            'Y'=>'Ý|Ỳ|Ỷ|Ỹ|Ỵ'
-        );
-        
-        foreach ($unicode as $khongdau => $codau) {
-            $arr = explode("|", $codau);
-            $str = str_replace($arr, $khongdau, $str);
-        }
-        
-        return $str;
-    }
-    
-    private function stripSpecial($str) {
-        $arr = array(",", "$", "!", "?", "&", "'", '"', "+"); 
-        $str = str_replace($arr, "", $str);   
-        $str = trim($str); 
-        
-        // Loại bỏ khoảng trắng thừa
-        while (strpos($str, "  ") > 0) {
-            $str = str_replace("  ", " ", $str);
-        }
-        
-        // Chuyển khoảng trắng thành dấu gạch ngang
-        $str = str_replace(" ", "-", $str);  
-        
-        return $str;
-    }
-    
-    //Tạo slug từ tiêu đề
-    private function taoSlug($str) {
-        // Loại bỏ ký tự có dấu
-        $str = $this->stripUnicode($str);
-        
-        // Chuyển về chữ thường
-        $str = mb_strtolower($str, 'UTF-8');
-        
-        // Loại bỏ ký tự đặc biệt và format slug
-        $str = $this->stripSpecial($str);
-        
-        return $str;
-    }
-    
-    // =======================================================================
-    // TÍNH NĂNG: XÓA BÀI VIẾT
-    // =======================================================================
     
     /**
-     * Xóa bài viết theo ID
-     * @param int $article_id - ID của bài viết cần xóa
+     * Sửa bài viết theo SLUG
+     * @param string $old_slug - Slug bài viết cần sửa
+     * @param array $data - Mảng dữ liệu mới
+     * @return bool - True nếu thành công, False nếu thất bại
+     */
+    public function suaBaiViet($old_slug, $data) {
+        // Validate dữ liệu
+        if (empty($data['category_id']) || empty($data['title'])) {
+            return false;
+        }
+        
+        $category_id = (int)$data['category_id'];
+        $title = $data['title'];
+        
+        // Tự động tạo slug mới từ title
+        $new_slug = $this->createSlug($title);
+        
+        $summary = isset($data['summary']) ? $data['summary'] : '';
+        $content = isset($data['content']) ? $data['content'] : '';
+        $image_url = isset($data['image_url']) ? $data['image_url'] : '';
+        $is_featured = isset($data['is_featured']) ? (int)$data['is_featured'] : 0;
+        
+        // Cập nhật bài viết
+        $sql = "UPDATE articles SET 
+                category_id = $category_id, 
+                title = '$title', 
+                slug = '$new_slug', 
+                summary = '$summary', 
+                content = '$content', 
+                image_url = '$image_url', 
+                is_featured = $is_featured 
+                WHERE slug = '$old_slug'";
+        
+        $result = $this->conn->query($sql);
+        
+        if ($result) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    /**
+     * Xóa bài viết theo SLUG
+     * @param string $article_slug - Slug của bài viết cần xóa
      * @return bool - True nếu xóa thành công, False nếu thất bại
      */
-    public function xoaBaiViet($article_id) {
-        $sql = "DELETE FROM articles WHERE article_id = $article_id";
+    public function xoaBaiVietTheoSlug($article_slug) {
+        $sql = "DELETE FROM articles WHERE slug = '$article_slug'";
         $result = $this->conn->query($sql);
         
         if ($result) {
