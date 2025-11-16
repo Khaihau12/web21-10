@@ -117,10 +117,10 @@ class dbadmin {
     
     /**
      * Lấy danh sách tất cả chuyên mục (dùng cho dropdown khi thêm bài viết)
-     * @return array - Mảng các chuyên mục sắp xếp theo tên
+     * @return array - Mảng các chuyên mục sắp xếp theo ID từ lớn đến nhỏ
      */
     public function layDanhSachChuyenMuc() {
-        $sql = "SELECT * FROM categories ORDER BY name ASC";
+        $sql = "SELECT * FROM categories ORDER BY category_id DESC";
         $result = $this->conn->query($sql);
         
         $categories = [];
@@ -541,5 +541,6 @@ class dbadmin {
     public function __destruct() {
         $this->dongKetNoi();
     }
+    
 }
 ?>
