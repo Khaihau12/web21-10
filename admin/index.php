@@ -426,6 +426,11 @@ $baiVietMoiNhat = $conn->query("SELECT COUNT(*) as total FROM articles WHERE DAT
                     include 'chinhsua.php';
                     break;
 
+                case 'delete-article':
+                    // XÓA BÀI VIẾT
+                    include 'danhsachbaidang.php';
+                    break;
+
                 case 'categories':
                     // DANH SÁCH CHUYÊN MỤC
                     include 'category_list.php';
@@ -439,6 +444,11 @@ $baiVietMoiNhat = $conn->query("SELECT COUNT(*) as total FROM articles WHERE DAT
                 case 'edit-category':
                     // SỬA CHUYÊN MỤC
                     include 'chinhsua_chuyen_muc.php';
+                    break;
+
+                case 'delete-category':
+                    // XÓA CHUYÊN MỤC
+                    include 'delete_category.php';
                     break;
 
                 case 'demo-loai-tin':
