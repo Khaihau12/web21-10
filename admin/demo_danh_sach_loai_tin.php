@@ -44,12 +44,11 @@ $db = new dbadmin();
                                 echo "<td>{$loaiTin['slug']}</td>";
                                 
                                 if ($loaiTin['parent_id']) {
-                                    $parentInfo = $db->layThongTinLoaiTin($loaiTin['parent_id']);
-                                    echo "<td>#{$loaiTin['parent_id']} - {$parentInfo['name']}</td>";
+                                    echo "<td>#{$loaiTin['parent_id']}</td>";
                                     echo "<td>Loại tin con</td>";
                                 } else {
                                     echo "<td>-</td>";
-                                    echo "<td>Loại tin gốc</td>";
+                                    echo "<td>Loại tin cha (gốc)</td>";
                                 }
                                 
                                 echo "</tr>";
