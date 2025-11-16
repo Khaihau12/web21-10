@@ -2,7 +2,7 @@
 // Kiểm tra đăng nhập
 require_once 'check_login.php';
 
-$categories = $db->getList("categories",);
+$categories = $db->layDanhSachChuyenMuc();
 ?>
 
 <div class="content-header">
@@ -11,7 +11,7 @@ $categories = $db->getList("categories",);
 
 <div class="content-body">
     <?php if (isset($_GET['msg']) && $_GET['msg'] == "deleted") { ?>
-        <p class="success">✅ Xóa loại tin thành công!</p>
+        <p class="success">✅ Xóa chuyên mục thành công!</p>
     <?php } ?>
     
     <a href="?page=add-category" class="btn btn-success">+ Thêm Chuyên Mục Mới</a>
@@ -33,11 +33,10 @@ $categories = $db->getList("categories",);
                     <td><?= $cat['name'] ?></td>
                     <td><?= $cat['slug'] ?></td>
                     <td>
-                        <a href="?page=edit-category&id=<?= $cat['category_id'] ?>" class="btn btn-success">Sửa</a>
-                        <form method="POST" action="delete_category.php" onsubmit="return confirm('Bạn có chắc muốn xóa loại tin này?');" style="display:inline;">
-                            <input type="hidden" name="category_id" value="<?= $cat['category_id'] ?>">
-                            <button type="submit" class="btn btn-danger">Xóa</button>
-                        </form>
+                        <a href="?page=edit-category&slug=<?= $cat['slug'] ?>" class="btn btn-success">Sửa</a>
+                        <a href="?page=delete-category&slug=<?= $cat['slug'] ?>" 
+                           onclick="return confirm('Bạn có chắc muốn xóa loại tin này?');"
+                           class="btn btn-danger">Xóa</a>
                     </td>
                 </tr>
             <?php } ?>
