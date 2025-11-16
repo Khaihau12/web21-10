@@ -7,19 +7,21 @@ $message = "";
 // Xử lý khi submit form
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $name = $_POST['name'];
-    $slug = $_POST['slug'];
     $parent_id = $_POST['parent_id'];
     
-    // Thêm chuyên mục
-    if ($db->themChuyenMuc($name, $slug, $parent_id)) {
+    // Thêm chuyên mục (slug tự động tạo từ name)
+    $result = $db->themChuyenMuc($name, $parent_id);
+    
+    if ($result === true) {
         $message = "Thêm chuyên mục thành công!";
     } else {
-        $message = "Lỗi khi thêm chuyên mục!";
+        // Nếu result là string thì đó là thông báo lỗi
+        $message = is_string($result) ? $result : "Lỗi khi thêm chuyên mục!";
     }
 }
 
 // Lấy danh sách chuyên mục để chọn parent
-$categories = $db->getList("categories");
+$categories = $db->layDanhSachChuyenMuc();
 ?>
 
 <div class="content-header">
@@ -42,9 +44,6 @@ $categories = $db->getList("categories");
     <form method="POST" action="">
         <label>Tên chuyên mục:</label>
         <input type="text" name="name" required>
-        
-        <label>Slug (để trống tự động tạo):</label>
-        <input type="text" name="slug">
         
         <label>Chuyên mục cha (để trống nếu là chuyên mục gốc):</label>
         <select name="parent_id">
