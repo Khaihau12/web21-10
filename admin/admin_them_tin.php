@@ -172,8 +172,12 @@ $categories = $db->layDanhSachChuyenMuc();
         
         <!-- Upload ảnh -->
         <label>Ảnh đại diện</label>
-        <input type="file" name="image" accept="image/jpeg,image/png,image/gif,image/jpg">
+        <input type="file" name="image" id="image_upload" accept="image/jpeg,image/png,image/gif,image/jpg" 
+               onchange="document.getElementById('preview_img').src = window.URL.createObjectURL(this.files[0]); document.getElementById('preview_img').style.display = 'block';">
         <p style="font-size:12px; color:#999;">Chọn ảnh JPG, PNG, GIF (tối đa 5MB)</p>
+        
+        <!-- Preview ảnh -->
+        <img id="preview_img" src="" alt="" style="display:none; max-width: 300px; margin-top: 10px; border: 1px solid #ddd; padding: 5px;">
         
         <!-- Tin nổi bật -->
         <label>
