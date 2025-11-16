@@ -4,20 +4,19 @@ require_once 'check_login.php';
 
 $conn = $db->getConnection();
 
-// Xử lý xóa bài viết
-if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
-    $article_id = (int)$_GET['id'];
-    if ($db->xoaBaiViet($article_id)) {
-        $message = "Xóa bài viết thành công!";
-        $message_type = "success";
-    } else {
-        $message = "Lỗi khi xóa bài viết!";
-        $message_type = "error";
-    }
+// Xử lý xóa
+if (isset($_GET['page']) && $_GET['page'] == 'delete-article' && isset($_GET['slug'])) {
+    $db->xoaBaiVietTheoSlug($_GET['slug']);
+    ?>
+    <script>
+    window.location.href = 'index.php?page=articles&msg=deleted';
+    </script>
+    <?php
+    exit;
 }
 
-// Lấy danh sách bài báo
-$result = $conn->query('SELECT a.article_id, a.title, c.name AS category_name FROM articles a LEFT JOIN categories c ON a.category_id = c.category_id ORDER BY a.article_id DESC');
+// Lấy danh sách bài báo với slug
+$result = $conn->query('SELECT a.article_id, a.title, a.slug, c.name AS category_name FROM articles a LEFT JOIN categories c ON a.category_id = c.category_id ORDER BY a.article_id DESC');
 ?>
 
 <div class="content-header">
@@ -27,10 +26,8 @@ $result = $conn->query('SELECT a.article_id, a.title, c.name AS category_name FR
 <div class="content-body">
     <h1>Danh Sách Bài Đăng</h1>
     
-    <?php if (isset($message)) { ?>
-        <div class="<?php echo $message_type; ?>">
-            <?php echo $message; ?>
-        </div>
+    <?php if (isset($_GET['msg']) && $_GET['msg'] == "deleted") { ?>
+        <p class="success">✅ Xóa bài viết thành công!</p>
     <?php } ?>
     
     <table>
@@ -49,8 +46,8 @@ $result = $conn->query('SELECT a.article_id, a.title, c.name AS category_name FR
                 <td><?php echo $row['title']; ?></td>
                 <td><?php echo $row['category_name']; ?></td>
                 <td>
-                    <a href="?page=edit-article&id=<?php echo $row['article_id']; ?>" class="btn btn-success">Sửa</a>
-                    <a href="?page=articles&action=delete&id=<?php echo $row['article_id']; ?>" 
+                    <a href="?page=edit-article&slug=<?php echo $row['slug']; ?>" class="btn btn-success">Sửa</a>
+                    <a href="?page=delete-article&slug=<?php echo $row['slug']; ?>" 
                        onclick="return confirm('Bạn có chắc muốn xóa bài viết này?');"
                        class="btn btn-danger">Xóa</a>
                 </td>
