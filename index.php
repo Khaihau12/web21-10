@@ -197,7 +197,7 @@ if ($isLoggedIn) {
             <aside class="sidebar-column col-4">
                 <div class="latest-news-block">
                     <header class="latest-news-tit">
-                        <h2 class="fw-bold text-uppercase color-green-custom">📌 TIN MỚI NHẤT</h2>
+                        <h2 class="fw-bold text-uppercase color-green-custom"> TIN MỚI NHẤT</h2>
                     </header>
                     <div class="latest-news-list">
                         <?php foreach($tinSidebar as $tin) { ?>
