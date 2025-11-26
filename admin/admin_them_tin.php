@@ -167,8 +167,9 @@ $categories = $db->layDanhSachChuyenMuc();
         
         <!-- Nội dung -->
         <label>Nội dung chi tiết</label>
-        <textarea name="content" rows="8"
+        <textarea id="content" name="content" rows="8"
                   placeholder="Nhập nội dung đầy đủ của bài viết..."><?php if(isset($_POST['content'])) { echo $_POST['content']; } ?></textarea>
+        <p style="font-size:12px; color:#999;">💡 Sử dụng trình soạn thảo để định dạng văn bản, căn lề, chèn ảnh</p>
         
         <!-- Upload ảnh -->
         <label>Ảnh đại diện</label>
@@ -197,3 +198,123 @@ $categories = $db->layDanhSachChuyenMuc();
         <button type="reset" class="btn">↻ Làm mới</button>
     </form>
 </div>
+
+<!-- Quill Editor  -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+<script>
+// Chuyển textarea thành div cho Quill
+var contentTextarea = document.querySelector('#content');
+var quillDiv = document.createElement('div');
+quillDiv.id = 'quill-editor';
+quillDiv.innerHTML = contentTextarea.value;
+contentTextarea.style.display = 'none';
+contentTextarea.parentNode.insertBefore(quillDiv, contentTextarea.nextSibling);
+
+// Khởi tạo Quill Editor
+var quill = new Quill('#quill-editor', {
+    theme: 'snow',
+    modules: {
+        toolbar: [
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'align': '' }, { 'align': 'center' }, { 'align': 'right' }, { 'align': 'justify' }],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+            ['link', 'image'],
+            [{ 'color': [] }, { 'background': [] }],
+            ['clean']
+        ]
+    },
+    placeholder: 'Nhập nội dung bài viết...'
+});
+
+// Upload ảnh lên server thay vì base64
+quill.getModule('toolbar').addHandler('image', function() {
+    var input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+    
+    input.onchange = function() {
+        var file = input.files[0];
+        if (file) {
+            var formData = new FormData();
+            formData.append('image', file);
+            
+            fetch('upload_quill_image.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.url) {
+                    var range = quill.getSelection();
+                    quill.insertEmbed(range.index, 'image', result.url);
+                } else {
+                    alert('Lỗi upload: ' + (result.error || 'Không rõ'));
+                }
+            })
+            .catch(error => {
+                alert('Lỗi upload ảnh!');
+                console.error(error);
+            });
+        }
+    };
+});
+
+// Đồng bộ nội dung với textarea khi submit
+var form = contentTextarea.closest('form');
+form.onsubmit = function() {
+    contentTextarea.value = quill.root.innerHTML;
+};
+</script>
+
+<style>
+#quill-editor {
+    min-height: 450px;
+    background: white;
+}
+.ql-toolbar {
+    background: #f5f5f5;
+    border: 1px solid #ddd !important;
+    border-radius: 4px 4px 0 0;
+}
+.ql-container {
+    border: 1px solid #ddd !important;
+    border-radius: 0 0 4px 4px;
+    font-size: 14px;
+}
+/* Hiển thị số thứ tự */
+.ql-editor ol {
+    padding-left: 1.5em;
+}
+.ql-editor ul {
+    padding-left: 1.5em;
+}
+/* Font Times New Roman mặc định */
+.ql-editor {
+    font-family: 'Times New Roman', Times, serif;
+}
+</style>
+<style>
+.ck-editor__editable { min-height: 450px; }
+/* Hiển thị số thứ tự cho numbered list */
+.ck-editor__editable ol {
+    list-style-type: decimal;
+    padding-left: 40px;
+}
+.ck-editor__editable ol li {
+    list-style-type: decimal;
+}
+.ck-editor__editable ul {
+    list-style-type: disc;
+    padding-left: 40px;
+}
+/* Căn lề */
+.ck-editor__editable .text-left { text-align: left; }
+.ck-editor__editable .text-center { text-align: center; }
+.ck-editor__editable .text-right { text-align: right; }
+.ck-editor__editable .text-justify { text-align: justify; }
+</style>
