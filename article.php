@@ -190,6 +190,7 @@ $tinSidebar = $db->layBaiVietMoiNhat(5);
             font-size: 16px;
             line-height: 1.8;
             color: #333;
+            font-family: 'Times New Roman', Times, serif;
         }
         
         .article-detail .content p {
@@ -207,6 +208,81 @@ $tinSidebar = $db->layBaiVietMoiNhat(5);
             height: auto;
             margin: 20px 0;
             border-radius: 8px;
+        }
+        
+        /* CSS cho article-body - Nơi hiển thị nội dung từ Quill Editor */
+        .article-body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #333;
+        }
+        
+        /* Căn lề từ Quill Editor */
+        .article-body .ql-align-left,
+        .article-body [style*="text-align: left"] {
+            text-align: left !important;
+        }
+        .article-body .ql-align-center,
+        .article-body [style*="text-align: center"] {
+            text-align: center !important;
+        }
+        .article-body .ql-align-right,
+        .article-body [style*="text-align: right"] {
+            text-align: right !important;
+        }
+        .article-body .ql-align-justify,
+        .article-body [style*="text-align: justify"] {
+            text-align: justify !important;
+        }
+        
+        /* Danh sách từ Quill Editor */
+        .article-body ol {
+            list-style-type: decimal;
+            padding-left: 2em;
+            margin-bottom: 15px;
+        }
+        .article-body ul {
+            list-style-type: disc;
+            padding-left: 2em;
+            margin-bottom: 15px;
+        }
+        .article-body li {
+            margin-bottom: 8px;
+        }
+        
+        /* Heading từ Quill Editor */
+        .article-body h1 { font-size: 32px; margin: 20px 0 15px 0; color: #2c3e50; font-weight: bold; }
+        .article-body h2 { font-size: 28px; margin: 20px 0 15px 0; color: #2c3e50; font-weight: bold; }
+        .article-body h3 { font-size: 22px; margin: 20px 0 15px 0; color: #2c3e50; font-weight: bold; }
+        .article-body h4 { font-size: 18px; margin: 15px 0 10px 0; color: #2c3e50; font-weight: bold; }
+        .article-body h5 { font-size: 16px; margin: 15px 0 10px 0; color: #2c3e50; font-weight: bold; }
+        .article-body h6 { font-size: 14px; margin: 15px 0 10px 0; color: #2c3e50; font-weight: bold; }
+        
+        /* Paragraph */
+        .article-body p {
+            margin-bottom: 15px;
+        }
+        
+        /* Định dạng văn bản */
+        .article-body strong { font-weight: bold; }
+        .article-body em { font-style: italic; }
+        .article-body u { text-decoration: underline; }
+        .article-body s { text-decoration: line-through; }
+        
+        /* Ảnh trong nội dung */
+        .article-body img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            border-radius: 4px;
+            display: block;
+        }
+        
+        /* Link */
+        .article-body a {
+            color: #3498db;
+            text-decoration: underline;
         }
         
         .breadcrumb {
